@@ -28,6 +28,8 @@ interface ParserOptions {
   ecmaVersion?: EcmaVersion;
 
   // scope-manager specific
+  jsxPragma?: string;
+  jsxFragmentName?: string | null;
   lib?: Lib[];
 
   // typescript-estree specific
@@ -35,6 +37,7 @@ interface ParserOptions {
   debugLevel?: DebugLevel;
   errorOnTypeScriptSyntacticAndSemanticIssues?: boolean;
   errorOnUnknownASTType?: boolean;
+  EXPERIMENTAL_useSourceOfProjectReferenceRedirect?: boolean; // purposely undocumented for now
   extraFileExtensions?: string[];
   filePath?: string;
   loc?: boolean;

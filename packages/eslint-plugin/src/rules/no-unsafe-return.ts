@@ -2,8 +2,9 @@ import {
   TSESTree,
   AST_NODE_TYPES,
 } from '@typescript-eslint/experimental-utils';
-import { isExpression } from 'tsutils';
+import * as tsutils from 'tsutils';
 import * as util from '../util';
+import { getThisExpression } from '../util';
 
 export default util.createRule({
   name: 'no-unsafe-return',
@@ -16,9 +17,13 @@ export default util.createRule({
       requiresTypeChecking: true,
     },
     messages: {
-      unsafeReturn: 'Unsafe return of an {{type}} typed value',
+      unsafeReturn: 'Unsafe return of an `{{type}}` typed value.',
+      unsafeReturnThis: [
+        'Unsafe return of an `{{type}}` typed value. `this` is typed as `any`.',
+        'You can try to fix this by turning on the `noImplicitThis` compiler option, or adding a `this` parameter to the function.',
+      ].join('\n'),
       unsafeReturnAssignment:
-        'Unsafe return of type {{sender}} from function with return type {{receiver}}.',
+        'Unsafe return of type `{{sender}}` from function with return type `{{receiver}}`.',
     },
     schema: [],
   },
@@ -26,6 +31,11 @@ export default util.createRule({
   create(context) {
     const { program, esTreeNodeToTSNodeMap } = util.getParserServices(context);
     const checker = program.getTypeChecker();
+    const compilerOptions = program.getCompilerOptions();
+    const isNoImplicitThis = tsutils.isStrictCompilerOptionEnabled(
+      compilerOptions,
+      'noImplicitThis',
+    );
 
     function getParentFunctionNode(
       node: TSESTree.Node,
@@ -58,16 +68,6 @@ export default util.createRule({
     ): void {
       const tsNode = esTreeNodeToTSNodeMap.get(returnNode);
       const anyType = util.isAnyOrAnyArrayTypeDiscriminated(tsNode, checker);
-      if (anyType !== util.AnyType.Safe) {
-        return context.report({
-          node: reportingNode,
-          messageId: 'unsafeReturn',
-          data: {
-            type: anyType === util.AnyType.Any ? 'any' : 'any[]',
-          },
-        });
-      }
-
       const functionNode = getParentFunctionNode(returnNode);
       /* istanbul ignore if */ if (!functionNode) {
         return;
@@ -84,11 +84,58 @@ export default util.createRule({
       // so we have to use the contextual typing in these cases, i.e.
       // const foo1: () => Set<string> = () => new Set<any>();
       // the return type of the arrow function is Set<any> even though the variable is typed as Set<string>
-      let functionType = isExpression(functionTSNode)
+      let functionType = tsutils.isExpression(functionTSNode)
         ? util.getContextualType(checker, functionTSNode)
         : checker.getTypeAtLocation(functionTSNode);
       if (!functionType) {
         functionType = checker.getTypeAtLocation(functionTSNode);
+      }
+
+      if (anyType !== util.AnyType.Safe) {
+        // Allow cases when the declared return type of the function is either unknown or unknown[]
+        // and the function is returning any or any[].
+        for (const signature of functionType.getCallSignatures()) {
+          const functionReturnType = signature.getReturnType();
+          if (
+            anyType === util.AnyType.Any &&
+            util.isTypeUnknownType(functionReturnType)
+          ) {
+            return;
+          }
+          if (
+            anyType === util.AnyType.AnyArray &&
+            util.isTypeUnknownArrayType(functionReturnType, checker)
+          ) {
+            return;
+          }
+        }
+
+        let messageId: 'unsafeReturn' | 'unsafeReturnThis' = 'unsafeReturn';
+
+        if (!isNoImplicitThis) {
+          // `return this`
+          const thisExpression = getThisExpression(returnNode);
+          if (
+            thisExpression &&
+            util.isTypeAnyType(
+              util.getConstrainedTypeAtLocation(
+                checker,
+                esTreeNodeToTSNodeMap.get(thisExpression),
+              ),
+            )
+          ) {
+            messageId = 'unsafeReturnThis';
+          }
+        }
+
+        // If the function return type was not unknown/unknown[], mark usage as unsafeReturn.
+        return context.report({
+          node: reportingNode,
+          messageId,
+          data: {
+            type: anyType === util.AnyType.Any ? 'any' : 'any[]',
+          },
+        });
       }
 
       for (const signature of functionType.getCallSignatures()) {

@@ -1,6 +1,6 @@
 {
   "name": "@typescript-eslint/scope-manager",
-  "version": "3.7.0",
+  "version": "4.20.0",
   "description": "TypeScript scope analyser for ESLint",
   "keywords": [
     "eslint",
@@ -39,16 +39,17 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@typescript-eslint/types": "3.7.0",
-    "@typescript-eslint/visitor-keys": "3.7.0"
+    "@typescript-eslint/types": "4.20.0",
+    "@typescript-eslint/visitor-keys": "4.20.0"
   },
   "devDependencies": {
-    "@typescript-eslint/typescript-estree": "3.7.0",
+    "@types/glob": "*",
+    "@typescript-eslint/typescript-estree": "4.20.0",
     "glob": "*",
     "jest-specific-snapshot": "*",
     "make-dir": "*",
     "prettier": "*",
-    "pretty-format": "^25.5.0",
+    "pretty-format": "^26.4.2",
     "rimraf": "*",
     "typescript": "*"
   },

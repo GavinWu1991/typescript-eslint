@@ -151,6 +151,7 @@ export type Node =
   | BreakStatement
   | CallExpression
   | CatchClause
+  | ChainExpression
   | ClassBody
   | ClassDeclaration
   | ClassExpression
@@ -186,11 +187,12 @@ export type Node =
   | JSXExpressionContainer
   | JSXFragment
   | JSXIdentifier
+  | JSXMemberExpression
+  | JSXNamespacedName
   | JSXOpeningElement
   | JSXOpeningFragment
   | JSXSpreadAttribute
   | JSXSpreadChild
-  | JSXMemberExpression
   | JSXText
   | LabeledStatement
   | Literal
@@ -201,8 +203,6 @@ export type Node =
   | NewExpression
   | ObjectExpression
   | ObjectPattern
-  | OptionalCallExpression
-  | OptionalMemberExpression
   | Program
   | Property
   | RestElement
@@ -246,15 +246,17 @@ export type Node =
   | TSIndexedAccessType
   | TSIndexSignature
   | TSInferType
-  | TSInterfaceDeclaration
   | TSInterfaceBody
+  | TSInterfaceDeclaration
   | TSInterfaceHeritage
   | TSIntersectionType
+  | TSIntrinsicKeyword
   | TSLiteralType
   | TSMappedType
   | TSMethodSignature
   | TSModuleBlock
   | TSModuleDeclaration
+  | TSNamedTupleMember
   | TSNamespaceExportDeclaration
   | TSNeverKeyword
   | TSNonNullExpression
@@ -264,16 +266,17 @@ export type Node =
   | TSOptionalType
   | TSParameterProperty
   | TSParenthesizedType
-  | TSPropertySignature
-  | TSPublicKeyword
   | TSPrivateKeyword
+  | TSPropertySignature
   | TSProtectedKeyword
+  | TSPublicKeyword
   | TSQualifiedName
   | TSReadonlyKeyword
   | TSRestType
   | TSStaticKeyword
   | TSStringKeyword
   | TSSymbolKeyword
+  | TSTemplateLiteralType
   | TSThisType
   | TSTupleType
   | TSTypeAliasDeclaration
@@ -291,8 +294,8 @@ export type Node =
   | TSUnionType
   | TSUnknownKeyword
   | TSVoidKeyword
-  | UpdateExpression
   | UnaryExpression
+  | UpdateExpression
   | VariableDeclaration
   | VariableDeclarator
   | WhileStatement
@@ -308,6 +311,10 @@ export type Node =
 export type Accessibility = 'public' | 'protected' | 'private';
 export type BindingPattern = ArrayPattern | ObjectPattern;
 export type BindingName = BindingPattern | Identifier;
+export type ChainElement =
+  | CallExpression
+  | MemberExpression
+  | TSNonNullExpression;
 export type ClassElement =
   | ClassProperty
   | MethodDefinition
@@ -353,6 +360,7 @@ export type Expression =
   | ArrowFunctionExpression
   | AssignmentExpression
   | BinaryExpression
+  | ChainExpression
   | ConditionalExpression
   | ImportExpression
   | JSXClosingElement
@@ -367,9 +375,16 @@ export type Expression =
   | SequenceExpression
   | SpreadElement
   | TSAsExpression
+  | TSTypeAssertion
   | TSUnaryExpression
   | YieldExpression;
 export type ForInitialiser = Expression | VariableDeclaration;
+export type FunctionLike =
+  | ArrowFunctionExpression
+  | FunctionDeclaration
+  | FunctionExpression
+  | TSDeclareFunction
+  | TSEmptyBodyFunctionExpression;
 export type ImportClause =
   | ImportDefaultSpecifier
   | ImportNamespaceSpecifier
@@ -385,7 +400,10 @@ export type JSXExpression =
   | JSXEmptyExpression
   | JSXSpreadChild
   | JSXExpressionContainer;
-export type JSXTagNameExpression = JSXIdentifier | JSXMemberExpression;
+export type JSXTagNameExpression =
+  | JSXIdentifier
+  | JSXMemberExpression
+  | JSXNamespacedName;
 export type LeftHandSideExpression =
   | CallExpression
   | ClassExpression
@@ -393,8 +411,6 @@ export type LeftHandSideExpression =
   | FunctionExpression
   | LiteralExpression
   | MemberExpression
-  | OptionalCallExpression
-  | OptionalMemberExpression
   | PrimaryExpression
   | TaggedTemplateExpression
   | TSNonNullExpression
@@ -417,11 +433,9 @@ export type MethodDefinition =
 export type Modifier =
   | TSAbstractKeyword
   | TSAsyncKeyword
-  | TSDeclareKeyword
-  | TSExportKeyword
-  | TSPublicKeyword
   | TSPrivateKeyword
   | TSProtectedKeyword
+  | TSPublicKeyword
   | TSReadonlyKeyword
   | TSStaticKeyword;
 export type ObjectLiteralElementLike =
@@ -429,9 +443,6 @@ export type ObjectLiteralElementLike =
   | Property
   | SpreadElement
   | TSAbstractMethodDefinition;
-export type OptionalMemberExpression =
-  | OptionalMemberExpressionComputedName
-  | OptionalMemberExpressionNonComputedName;
 export type Parameter =
   | ArrayPattern
   | AssignmentPattern
@@ -457,6 +468,8 @@ export type PrimaryExpression =
   | TemplateLiteral
   | ThisExpression
   | TSNullKeyword;
+/** TODO: re-align this with EStree spec in next major release */
+export type ProgramStatement = Statement;
 export type Property = PropertyComputedName | PropertyNonComputedName;
 export type PropertyName = PropertyNameComputed | PropertyNameNonComputed;
 export type PropertyNameComputed = Expression;
@@ -467,16 +480,27 @@ export type PropertyNameNonComputed =
 export type Statement =
   | BlockStatement
   | BreakStatement
+  | ClassDeclaration
   | ContinueStatement
   | DebuggerStatement
   | DeclarationStatement
   | EmptyStatement
+  | ExportAllDeclaration
+  | ExportDefaultDeclaration
+  | ExportNamedDeclaration
   | ExpressionStatement
   | IfStatement
   | IterationStatement
   | ImportDeclaration
   | LabeledStatement
+  | TSDeclareFunction
+  | TSEnumDeclaration
+  | TSExportAssignment
+  | TSImportEqualsDeclaration
+  | TSInterfaceDeclaration
   | TSModuleBlock
+  | TSNamespaceExportDeclaration
+  | TSTypeAliasDeclaration
   | ReturnStatement
   | SwitchStatement
   | ThrowStatement
@@ -523,8 +547,10 @@ export type TypeNode =
   | TSInferType
   | TSInterfaceHeritage
   | TSIntersectionType
+  | TSIntrinsicKeyword
   | TSLiteralType
   | TSMappedType
+  | TSNamedTupleMember
   | TSNeverKeyword
   | TSNullKeyword
   | TSNumberKeyword
@@ -534,13 +560,14 @@ export type TypeNode =
   | TSRestType
   | TSStringKeyword
   | TSSymbolKeyword
+  | TSTemplateLiteralType
   | TSThisType
   | TSTupleType
   | TSTypeLiteral
   | TSTypeOperator
   | TSTypePredicate
-  | TSTypeReference
   | TSTypeQuery
+  | TSTypeReference
   | TSUndefinedKeyword
   | TSUnionType
   | TSUnknownKeyword
@@ -822,9 +849,13 @@ export interface BreakStatement extends BaseNode {
   label: Identifier | null;
 }
 
+export interface ChainExpression extends BaseNode {
+  type: AST_NODE_TYPES.ChainExpression;
+  expression: ChainElement;
+}
+
 export interface CallExpression extends CallExpressionBase {
   type: AST_NODE_TYPES.CallExpression;
-  optional: false;
 }
 
 export interface CatchClause extends BaseNode {
@@ -946,7 +977,6 @@ export interface ForStatement extends BaseNode {
 export interface FunctionDeclaration extends FunctionDeclarationBase {
   type: AST_NODE_TYPES.FunctionDeclaration;
   body: BlockStatement;
-  decorators?: Decorator[];
 }
 
 export interface FunctionExpression extends FunctionDeclarationBase {
@@ -999,7 +1029,7 @@ export interface ImportSpecifier extends BaseNode {
 
 export interface JSXAttribute extends BaseNode {
   type: AST_NODE_TYPES.JSXAttribute;
-  name: JSXIdentifier;
+  name: JSXIdentifier | JSXNamespacedName;
   value: Literal | JSXExpression | null;
 }
 
@@ -1046,12 +1076,18 @@ export interface JSXMemberExpression extends BaseNode {
   property: JSXIdentifier;
 }
 
+export interface JSXNamespacedName extends BaseNode {
+  type: AST_NODE_TYPES.JSXNamespacedName;
+  namespace: JSXIdentifier;
+  name: JSXIdentifier;
+}
+
 export interface JSXOpeningElement extends BaseNode {
   type: AST_NODE_TYPES.JSXOpeningElement;
   typeParameters?: TSTypeParameterInstantiation;
   selfClosing: boolean;
   name: JSXTagNameExpression;
-  attributes: JSXAttribute[];
+  attributes: (JSXAttribute | JSXSpreadAttribute)[];
 }
 
 export interface JSXOpeningFragment extends BaseNode {
@@ -1087,13 +1123,11 @@ export interface LogicalExpression extends BinaryExpressionBase {
 export interface MemberExpressionComputedName
   extends MemberExpressionComputedNameBase {
   type: AST_NODE_TYPES.MemberExpression;
-  optional: false;
 }
 
 export interface MemberExpressionNonComputedName
   extends MemberExpressionNonComputedNameBase {
   type: AST_NODE_TYPES.MemberExpression;
-  optional: false;
 }
 
 export interface MetaProperty extends BaseNode {
@@ -1142,23 +1176,6 @@ export interface ObjectPattern extends BaseNode {
   decorators?: Decorator[];
 }
 
-export interface OptionalCallExpression extends CallExpressionBase {
-  type: AST_NODE_TYPES.OptionalCallExpression;
-  optional: boolean;
-}
-
-export interface OptionalMemberExpressionComputedName
-  extends MemberExpressionComputedNameBase {
-  type: AST_NODE_TYPES.OptionalMemberExpression;
-  optional: boolean;
-}
-
-export interface OptionalMemberExpressionNonComputedName
-  extends MemberExpressionNonComputedNameBase {
-  type: AST_NODE_TYPES.OptionalMemberExpression;
-  optional: boolean;
-}
-
 export interface Program extends BaseNode {
   type: AST_NODE_TYPES.Program;
   body: Statement[];
@@ -1179,7 +1196,7 @@ export interface PropertyNonComputedName extends PropertyBase {
 
 export interface RegExpLiteral extends LiteralBase {
   type: AST_NODE_TYPES.Literal;
-  value: RegExp;
+  value: RegExp | null;
 }
 
 export interface RestElement extends BaseNode {
@@ -1262,7 +1279,7 @@ export interface TryStatement extends BaseNode {
   type: AST_NODE_TYPES.TryStatement;
   block: BlockStatement;
   handler: CatchClause | null;
-  finalizer: BlockStatement;
+  finalizer: BlockStatement | null;
 }
 
 export interface TSAbstractClassPropertyComputedName
@@ -1334,6 +1351,7 @@ export interface TSConditionalType extends BaseNode {
 
 export interface TSConstructorType extends FunctionSignatureBase {
   type: AST_NODE_TYPES.TSConstructorType;
+  abstract: boolean;
 }
 
 export interface TSConstructSignatureDeclaration extends FunctionSignatureBase {
@@ -1360,7 +1378,6 @@ export interface TSEnumDeclaration extends BaseNode {
   const?: boolean;
   declare?: boolean;
   modifiers?: Modifier[];
-  decorators?: Decorator[];
 }
 
 /**
@@ -1406,6 +1423,7 @@ export interface TSImportEqualsDeclaration extends BaseNode {
   type: AST_NODE_TYPES.TSImportEqualsDeclaration;
   id: Identifier;
   moduleReference: EntityName | TSExternalModuleReference;
+  importKind: 'type' | 'value';
   isExport: boolean;
 }
 
@@ -1445,7 +1463,6 @@ export interface TSInterfaceDeclaration extends BaseNode {
   typeParameters?: TSTypeParameterDeclaration;
   extends?: TSInterfaceHeritage[];
   implements?: TSInterfaceHeritage[];
-  decorators?: Decorator[];
   abstract?: boolean;
   declare?: boolean;
 }
@@ -1464,6 +1481,10 @@ export interface TSIntersectionType extends BaseNode {
   types: TypeNode[];
 }
 
+export interface TSIntrinsicKeyword extends BaseNode {
+  type: AST_NODE_TYPES.TSIntrinsicKeyword;
+}
+
 export interface TSLiteralType extends BaseNode {
   type: AST_NODE_TYPES.TSLiteralType;
   literal: LiteralExpression | UnaryExpression | UpdateExpression;
@@ -1471,10 +1492,11 @@ export interface TSLiteralType extends BaseNode {
 
 export interface TSMappedType extends BaseNode {
   type: AST_NODE_TYPES.TSMappedType;
-  typeParameter: TSTypeParameterDeclaration;
+  typeParameter: TSTypeParameter;
   readonly?: boolean | '-' | '+';
   optional?: boolean | '-' | '+';
   typeAnnotation?: TypeNode;
+  nameType: TypeNode | null;
 }
 
 export interface TSMethodSignatureComputedName extends TSMethodSignatureBase {
@@ -1500,6 +1522,13 @@ export interface TSModuleDeclaration extends BaseNode {
   global?: boolean;
   declare?: boolean;
   modifiers?: Modifier[];
+}
+
+export interface TSNamedTupleMember extends BaseNode {
+  type: AST_NODE_TYPES.TSNamedTupleMember;
+  elementType: TypeNode;
+  label: Identifier;
+  optional: boolean;
 }
 
 export interface TSNamespaceExportDeclaration extends BaseNode {
@@ -1597,6 +1626,12 @@ export interface TSStringKeyword extends BaseNode {
 
 export interface TSSymbolKeyword extends BaseNode {
   type: AST_NODE_TYPES.TSSymbolKeyword;
+}
+
+export interface TSTemplateLiteralType extends BaseNode {
+  type: AST_NODE_TYPES.TSTemplateLiteralType;
+  quasis: TemplateElement[];
+  types: TypeNode[];
 }
 
 export interface TSThisType extends BaseNode {

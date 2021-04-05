@@ -135,7 +135,26 @@ export default util.createRule<Options, MessageIds>({
 
     return {
       TSNonNullExpression(node): void {
+        if (
+          node.parent?.type === AST_NODE_TYPES.AssignmentExpression &&
+          node.parent?.operator === '=' &&
+          node.parent.left === node
+        ) {
+          context.report({
+            node,
+            messageId: 'contextuallyUnnecessary',
+            fix(fixer) {
+              return fixer.removeRange([
+                node.expression.range[1],
+                node.range[1],
+              ]);
+            },
+          });
+          return;
+        }
+
         const originalNode = parserServices.esTreeNodeToTSNodeMap.get(node);
+
         const type = util.getConstrainedTypeAtLocation(
           checker,
           originalNode.expression,
@@ -239,15 +258,21 @@ export default util.createRule<Options, MessageIds>({
             node,
             messageId: 'unnecessaryAssertion',
             fix(fixer) {
-              return originalNode.kind === ts.SyntaxKind.TypeAssertionExpression
-                ? fixer.removeRange([
-                    originalNode.getStart(),
-                    originalNode.expression.getStart(),
-                  ])
-                : fixer.removeRange([
-                    originalNode.expression.end,
-                    originalNode.end,
-                  ]);
+              if (originalNode.kind === ts.SyntaxKind.TypeAssertionExpression) {
+                const closingAngleBracket = sourceCode.getTokenAfter(
+                  node.typeAnnotation,
+                );
+                return closingAngleBracket?.value === '>'
+                  ? fixer.removeRange([
+                      node.range[0],
+                      closingAngleBracket.range[1],
+                    ])
+                  : null;
+              }
+              return fixer.removeRange([
+                node.expression.range[1] + 1,
+                node.range[1],
+              ]);
             },
           });
         }

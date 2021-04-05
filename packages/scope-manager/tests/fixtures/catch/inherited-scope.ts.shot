@@ -3,7 +3,8 @@
 exports[`catch inherited-scope 1`] = `
 ScopeManager {
   variables: Array [
-    Variable$1 {
+    ImplicitGlobalConstTypeVariable,
+    Variable$2 {
       defs: Array [
         VariableDefinition$1 {
           name: Identifier<"a">,
@@ -15,22 +16,26 @@ ScopeManager {
         Reference$1 {
           identifier: Identifier<"a">,
           init: true,
+          isRead: false,
           isTypeReference: false,
           isValueReference: true,
-          resolved: Variable$1,
+          isWrite: true,
+          resolved: Variable$2,
           writeExpr: Literal$2,
         },
         Reference$2 {
           identifier: Identifier<"a">,
+          isRead: true,
           isTypeReference: false,
           isValueReference: true,
-          resolved: Variable$1,
+          isWrite: false,
+          resolved: Variable$2,
         },
       ],
       isValueVariable: true,
       isTypeVariable: false,
     },
-    Variable$2 {
+    Variable$3 {
       defs: Array [
         CatchClauseDefinition$2 {
           name: Identifier<"e">,
@@ -51,12 +56,14 @@ ScopeManager {
         Reference$1,
       ],
       set: Map {
-        "a" => Variable$1,
+        "const" => ImplicitGlobalConstTypeVariable,
+        "a" => Variable$2,
       },
       type: "global",
       upper: null,
       variables: Array [
-        Variable$1,
+        ImplicitGlobalConstTypeVariable,
+        Variable$2,
       ],
     },
     BlockScope$2 {
@@ -73,12 +80,12 @@ ScopeManager {
       isStrict: false,
       references: Array [],
       set: Map {
-        "e" => Variable$2,
+        "e" => Variable$3,
       },
       type: "catch",
       upper: GlobalScope$1,
       variables: Array [
-        Variable$2,
+        Variable$3,
       ],
     },
     BlockScope$4 {

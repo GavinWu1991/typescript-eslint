@@ -1,5 +1,14 @@
 import * as ts from 'typescript';
 
+// Workaround to support new TS version features for consumers on old TS versions
+// Eg: https://github.com/typescript-eslint/typescript-eslint/issues/2388, https://github.com/typescript-eslint/typescript-eslint/issues/2784
+declare module 'typescript' {
+  /* eslint-disable @typescript-eslint/no-empty-interface */
+  export interface NamedTupleMember extends ts.Node {}
+  export interface TemplateLiteralTypeNode extends ts.Node {}
+  /* eslint-enable @typescript-eslint/no-empty-interface */
+}
+
 export type TSToken = ts.Token<ts.SyntaxKind>;
 
 export type TSNode =
@@ -42,6 +51,7 @@ export type TSNode =
   | ts.TypeQueryNode
   | ts.TypeLiteralNode
   | ts.ArrayTypeNode
+  | ts.NamedTupleMember
   | ts.TupleTypeNode
   | ts.OptionalTypeNode
   | ts.RestTypeNode
@@ -161,6 +171,7 @@ export type TSNode =
   | ts.InputFiles
   | ts.UnparsedSource
   | ts.JsonMinusNumericLiteral
+  | ts.TemplateLiteralTypeNode
 
   // JSDoc: Unsupported
   | ts.JSDoc

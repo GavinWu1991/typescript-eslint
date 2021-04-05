@@ -3,7 +3,8 @@
 exports[`member-expression member-expression 1`] = `
 ScopeManager {
   variables: Array [
-    Variable$1 {
+    ImplicitGlobalConstTypeVariable,
+    Variable$2 {
       defs: Array [
         VariableDefinition$1 {
           name: Identifier<"x">,
@@ -15,40 +16,52 @@ ScopeManager {
         Reference$1 {
           identifier: Identifier<"x">,
           init: true,
+          isRead: false,
           isTypeReference: false,
           isValueReference: true,
-          resolved: Variable$1,
+          isWrite: true,
+          resolved: Variable$2,
           writeExpr: ObjectExpression$2,
         },
         Reference$2 {
           identifier: Identifier<"x">,
+          isRead: true,
           isTypeReference: false,
           isValueReference: true,
-          resolved: Variable$1,
+          isWrite: false,
+          resolved: Variable$2,
         },
         Reference$3 {
           identifier: Identifier<"x">,
+          isRead: true,
           isTypeReference: false,
           isValueReference: true,
-          resolved: Variable$1,
+          isWrite: false,
+          resolved: Variable$2,
         },
         Reference$4 {
           identifier: Identifier<"x">,
+          isRead: true,
           isTypeReference: false,
           isValueReference: true,
-          resolved: Variable$1,
+          isWrite: false,
+          resolved: Variable$2,
         },
         Reference$5 {
           identifier: Identifier<"x">,
+          isRead: true,
           isTypeReference: false,
           isValueReference: true,
-          resolved: Variable$1,
+          isWrite: false,
+          resolved: Variable$2,
         },
         Reference$6 {
           identifier: Identifier<"x">,
+          isRead: true,
           isTypeReference: false,
           isValueReference: true,
-          resolved: Variable$1,
+          isWrite: false,
+          resolved: Variable$2,
         },
       ],
       isValueVariable: true,
@@ -68,12 +81,14 @@ ScopeManager {
         Reference$6,
       ],
       set: Map {
-        "x" => Variable$1,
+        "const" => ImplicitGlobalConstTypeVariable,
+        "x" => Variable$2,
       },
       type: "global",
       upper: null,
       variables: Array [
-        Variable$1,
+        ImplicitGlobalConstTypeVariable,
+        Variable$2,
       ],
     },
   ],

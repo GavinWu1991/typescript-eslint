@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - master
+      # TODO - delete this before merging v4 into master
+      - v4
   pull_request:
     branches:
       - '**'
@@ -41,7 +43,6 @@ jobs:
       - name: Install dependencies
         run: |
           yarn --ignore-engines --frozen-lockfile --ignore-scripts
-          yarn lerna:init
           yarn check:clean-workspace-after-install
 
       - name: Build
@@ -58,6 +59,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+        with:
+          fetch-depth: 2
 
       - name: echo github.ref
         run: echo ${{ github.ref }}
@@ -82,7 +85,6 @@ jobs:
       - name: Install dependencies
         run: |
           yarn --ignore-engines --frozen-lockfile --ignore-scripts
-          yarn lerna:init
           yarn check:clean-workspace-after-install
 
       - name: Build
@@ -140,7 +142,6 @@ jobs:
       - name: Publish code coverage report
         uses: codecov/codecov-action@v1
         with:
-          yml: ./codecov.yml
           token: ${{ secrets.CODECOV_TOKEN }}
           flags: unittest
           name: codecov
@@ -170,7 +171,6 @@ jobs:
       - name: Install dependencies
         run: |
           yarn --ignore-engines --frozen-lockfile --ignore-scripts
-          yarn lerna:init
           yarn check:clean-workspace-after-install
 
       - name: Build
@@ -214,7 +214,6 @@ jobs:
       - name: Install dependencies
         run: |
           yarn --ignore-engines --frozen-lockfile --ignore-scripts
-          yarn lerna:init
           yarn check:clean-workspace-after-install
 
       - name: Build
@@ -254,7 +253,6 @@ jobs:
       - name: Install dependencies
         run: |
           yarn --ignore-engines --frozen-lockfile --ignore-scripts
-          yarn lerna:init
           yarn check:clean-workspace-after-install
 
       - name: Build
@@ -337,7 +335,6 @@ jobs:
       - name: Install dependencies
         run: |
           yarn --ignore-engines --frozen-lockfile --ignore-scripts
-          yarn lerna:init
           yarn check:clean-workspace-after-install
 
       - name: Build

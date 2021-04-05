@@ -1,5 +1,5 @@
 import rule from '../../src/rules/return-await';
-import { getFixturesRootDir, RuleTester, noFormat } from '../RuleTester';
+import { getFixturesRootDir, noFormat, RuleTester } from '../RuleTester';
 
 const rootDir = getFixturesRootDir();
 
@@ -108,6 +108,32 @@ ruleTester.run('return-await', rule, {
             return await Promise.resolve(2);
           } finally {
             console.log('cleanup');
+          }
+        }
+      `,
+    },
+    {
+      options: ['in-try-catch'],
+      code: `
+        async function test() {
+          try {
+            throw 'foo';
+          } catch (e) {
+            return Promise.resolve(1);
+          }
+        }
+      `,
+    },
+    {
+      options: ['in-try-catch'],
+      code: `
+        async function test() {
+          try {
+            throw 'foo';
+          } catch (e) {
+            throw 'foo2';
+          } finally {
+            return Promise.resolve(1);
           }
         }
       `,
@@ -283,6 +309,56 @@ ruleTester.run('return-await', rule, {
         {
           line: 1,
           messageId: 'nonPromiseAwait',
+        },
+      ],
+    },
+    {
+      code: `
+const fn = (): any => null;
+async function test() {
+  return await fn();
+}
+      `.trimRight(),
+      errors: [
+        {
+          line: 4,
+          messageId: 'nonPromiseAwait',
+          suggestions: [
+            {
+              messageId: 'nonPromiseAwait',
+              output: `
+const fn = (): any => null;
+async function test() {
+  return fn();
+}
+              `.trimRight(),
+            },
+          ],
+        },
+      ],
+    },
+    {
+      code: `
+const fn = (): unknown => null;
+async function test() {
+  return await fn();
+}
+      `.trimRight(),
+      errors: [
+        {
+          line: 4,
+          messageId: 'nonPromiseAwait',
+          suggestions: [
+            {
+              messageId: 'nonPromiseAwait',
+              output: `
+const fn = (): unknown => null;
+async function test() {
+  return fn();
+}
+              `.trimRight(),
+            },
+          ],
         },
       ],
     },

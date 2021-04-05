@@ -16,7 +16,7 @@ interface Config {
 
 export type Options = [Config];
 
-export type MessageIds = 'unbound';
+export type MessageIds = 'unbound' | 'unboundWithoutThisAnnotation';
 
 /**
  * The following is a list of exceptions to the rule
@@ -118,9 +118,11 @@ const isNotImported = (
 const getNodeName = (node: TSESTree.Node): string | null =>
   node.type === AST_NODE_TYPES.Identifier ? node.name : null;
 
-const getMemberFullName = (
-  node: TSESTree.MemberExpression | TSESTree.OptionalMemberExpression,
-): string => `${getNodeName(node.object)}.${getNodeName(node.property)}`;
+const getMemberFullName = (node: TSESTree.MemberExpression): string =>
+  `${getNodeName(node.object)}.${getNodeName(node.property)}`;
+
+const BASE_MESSAGE =
+  'Avoid referencing unbound methods which may cause unintentional scoping of `this`.';
 
 export default util.createRule<Options, MessageIds>({
   name: 'unbound-method',
@@ -133,8 +135,11 @@ export default util.createRule<Options, MessageIds>({
       requiresTypeChecking: true,
     },
     messages: {
-      unbound:
-        'Avoid referencing unbound methods which may cause unintentional scoping of `this`.',
+      unbound: BASE_MESSAGE,
+      unboundWithoutThisAnnotation:
+        BASE_MESSAGE +
+        '\n' +
+        'If your function does not access `this`, you can annotate it with `this: void`, or consider using an arrow function instead.',
     },
     schema: [
       {
@@ -161,10 +166,28 @@ export default util.createRule<Options, MessageIds>({
       context.getFilename(),
     );
 
+    function checkMethodAndReport(
+      node: TSESTree.Node,
+      symbol: ts.Symbol | undefined,
+    ): void {
+      if (!symbol) {
+        return;
+      }
+
+      const { dangerous, firstParamIsThis } = checkMethod(symbol, ignoreStatic);
+      if (dangerous) {
+        context.report({
+          messageId:
+            firstParamIsThis === false
+              ? 'unboundWithoutThisAnnotation'
+              : 'unbound',
+          node,
+        });
+      }
+    }
+
     return {
-      'MemberExpression, OptionalMemberExpression'(
-        node: TSESTree.MemberExpression | TSESTree.OptionalMemberExpression,
-      ): void {
+      MemberExpression(node: TSESTree.MemberExpression): void {
         if (isSafeUse(node)) {
           return;
         }
@@ -182,14 +205,8 @@ export default util.createRule<Options, MessageIds>({
         }
 
         const originalNode = parserServices.esTreeNodeToTSNodeMap.get(node);
-        const symbol = checker.getSymbolAtLocation(originalNode);
 
-        if (symbol && isDangerousMethod(symbol, ignoreStatic)) {
-          context.report({
-            messageId: 'unbound',
-            node,
-          });
-        }
+        checkMethodAndReport(node, checker.getSymbolAtLocation(originalNode));
       },
       'VariableDeclarator, AssignmentExpression'(
         node: TSESTree.VariableDeclarator | TSESTree.AssignmentExpression,
@@ -222,13 +239,10 @@ export default util.createRule<Options, MessageIds>({
                 return;
               }
 
-              const symbol = initTypes.getProperty(property.key.name);
-              if (symbol && isDangerousMethod(symbol, ignoreStatic)) {
-                context.report({
-                  messageId: 'unbound',
-                  node,
-                });
-              }
+              checkMethodAndReport(
+                node,
+                initTypes.getProperty(property.key.name),
+              );
             }
           });
         }
@@ -237,31 +251,52 @@ export default util.createRule<Options, MessageIds>({
   },
 });
 
-function isDangerousMethod(symbol: ts.Symbol, ignoreStatic: boolean): boolean {
+function checkMethod(
+  symbol: ts.Symbol,
+  ignoreStatic: boolean,
+): { dangerous: boolean; firstParamIsThis?: boolean } {
   const { valueDeclaration } = symbol;
   if (!valueDeclaration) {
     // working around https://github.com/microsoft/TypeScript/issues/31294
-    return false;
+    return { dangerous: false };
   }
 
   switch (valueDeclaration.kind) {
     case ts.SyntaxKind.PropertyDeclaration:
-      return (
-        (valueDeclaration as ts.PropertyDeclaration).initializer?.kind ===
-        ts.SyntaxKind.FunctionExpression
-      );
+      return {
+        dangerous:
+          (valueDeclaration as ts.PropertyDeclaration).initializer?.kind ===
+          ts.SyntaxKind.FunctionExpression,
+      };
     case ts.SyntaxKind.MethodDeclaration:
-    case ts.SyntaxKind.MethodSignature:
-      return !(
-        ignoreStatic &&
-        tsutils.hasModifier(
-          valueDeclaration.modifiers,
-          ts.SyntaxKind.StaticKeyword,
-        )
-      );
+    case ts.SyntaxKind.MethodSignature: {
+      const decl = valueDeclaration as
+        | ts.MethodDeclaration
+        | ts.MethodSignature;
+      const firstParam = decl.parameters[0];
+      const firstParamIsThis =
+        firstParam?.name.kind === ts.SyntaxKind.Identifier &&
+        firstParam?.name.escapedText === 'this';
+      const thisArgIsVoid =
+        firstParamIsThis &&
+        firstParam?.type?.kind === ts.SyntaxKind.VoidKeyword;
+
+      return {
+        dangerous:
+          !thisArgIsVoid &&
+          !(
+            ignoreStatic &&
+            tsutils.hasModifier(
+              valueDeclaration.modifiers,
+              ts.SyntaxKind.StaticKeyword,
+            )
+          ),
+        firstParamIsThis,
+      };
+    }
   }
 
-  return false;
+  return { dangerous: false };
 }
 
 function isSafeUse(node: TSESTree.Node): boolean {
@@ -271,14 +306,12 @@ function isSafeUse(node: TSESTree.Node): boolean {
     case AST_NODE_TYPES.IfStatement:
     case AST_NODE_TYPES.ForStatement:
     case AST_NODE_TYPES.MemberExpression:
-    case AST_NODE_TYPES.OptionalMemberExpression:
     case AST_NODE_TYPES.SwitchStatement:
     case AST_NODE_TYPES.UpdateExpression:
     case AST_NODE_TYPES.WhileStatement:
       return true;
 
     case AST_NODE_TYPES.CallExpression:
-    case AST_NODE_TYPES.OptionalCallExpression:
       return parent.callee === node;
 
     case AST_NODE_TYPES.ConditionalExpression:
@@ -297,8 +330,16 @@ function isSafeUse(node: TSESTree.Node): boolean {
       return ['instanceof', '==', '!=', '===', '!=='].includes(parent.operator);
 
     case AST_NODE_TYPES.AssignmentExpression:
-      return parent.operator === '=' && node === parent.left;
+      return (
+        parent.operator === '=' &&
+        (node === parent.left ||
+          (node.type === AST_NODE_TYPES.MemberExpression &&
+            node.object.type === AST_NODE_TYPES.Super &&
+            parent.left.type === AST_NODE_TYPES.MemberExpression &&
+            parent.left.object.type === AST_NODE_TYPES.ThisExpression))
+      );
 
+    case AST_NODE_TYPES.ChainExpression:
     case AST_NODE_TYPES.TSNonNullExpression:
     case AST_NODE_TYPES.TSAsExpression:
     case AST_NODE_TYPES.TSTypeAssertion:

@@ -185,6 +185,34 @@ export const x: Foo = {
       `,
       options: [{ allowTypedFunctionExpressions: true }],
     },
+    // https://github.com/typescript-eslint/typescript-eslint/issues/2864
+    {
+      filename: 'test.ts',
+      code: `
+export const x = {
+  foo: { bar: () => {} },
+} as Foo;
+      `,
+      options: [{ allowTypedFunctionExpressions: true }],
+    },
+    {
+      filename: 'test.ts',
+      code: `
+export const x = <Foo>{
+  foo: { bar: () => {} },
+};
+      `,
+      options: [{ allowTypedFunctionExpressions: true }],
+    },
+    {
+      filename: 'test.ts',
+      code: `
+export const x: Foo = {
+  foo: { bar: () => {} },
+};
+      `,
+      options: [{ allowTypedFunctionExpressions: true }],
+    },
     // https://github.com/typescript-eslint/typescript-eslint/issues/484
     {
       code: `
@@ -312,6 +340,23 @@ export const func4 = (value: number) => x as const;
       code: `
 export const func1 = (value: string) => value;
 export const func2 = (value: number) => ({ type: 'X', value });
+      `,
+      options: [
+        {
+          allowedNames: ['func1', 'func2'],
+        },
+      ],
+    },
+    {
+      code: `
+export function func1() {
+  return 0;
+}
+export const foo = {
+  func2() {
+    return 0;
+  },
+};
       `,
       options: [
         {
@@ -645,6 +690,41 @@ export const bar: () => (n: number) => string = () => n => String(n);
 type Buz = () => (n: number) => string;
 
 export const buz: Buz = () => n => String(n);
+    `,
+    `
+export abstract class Foo<T> {
+  abstract set value(element: T);
+}
+    `,
+    `
+export declare class Foo {
+  set time(seconds: number);
+}
+    `,
+    `
+export class A {
+  b = A;
+}
+    `,
+    `
+interface Foo {
+  f: (x: boolean) => boolean;
+}
+
+export const a: Foo[] = [
+  {
+    f: (x: boolean) => x,
+  },
+];
+    `,
+    `
+interface Foo {
+  f: (x: boolean) => boolean;
+}
+
+export const a: Foo = {
+  f: (x: boolean) => x,
+};
     `,
   ],
   invalid: [
@@ -1760,6 +1840,39 @@ export function foo(...[a]: any): void {}
           data: {
             type: 'Rest',
           },
+        },
+      ],
+    },
+    {
+      code: `
+export function func1() {
+  return 0;
+}
+export const foo = {
+  func2() {
+    return 0;
+  },
+};
+      `,
+      options: [
+        {
+          allowedNames: [],
+        },
+      ],
+      errors: [
+        {
+          messageId: 'missingReturnType',
+          line: 2,
+          endLine: 2,
+          column: 8,
+          endColumn: 24,
+        },
+        {
+          messageId: 'missingReturnType',
+          line: 6,
+          endLine: 6,
+          column: 3,
+          endColumn: 10,
         },
       ],
     },

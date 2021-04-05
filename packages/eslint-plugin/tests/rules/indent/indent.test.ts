@@ -621,6 +621,9 @@ type Foo = string | {
   (acc, testCase) => {
     const indent = '    ';
 
+    const validCases = [...acc.valid];
+    const invalidCases = [...acc.invalid];
+
     const codeCases = testCase.code.map(code =>
       [
         '', // newline to make test error messages nicer
@@ -631,9 +634,9 @@ type Foo = string | {
 
     codeCases.forEach(code => {
       // valid test case is just the code
-      acc.valid.push(code);
+      validCases.push(code);
 
-      acc.invalid.push({
+      const invalid = {
         // test the fixer by removing all the spaces
         code: code.replace(new RegExp(indent, 'g'), ''),
         output: code,
@@ -661,10 +664,13 @@ type Foo = string | {
             (error): error is TSESLint.TestCaseError<MessageIds> =>
               error !== null,
           ),
-      });
+      };
+      if (invalid.errors.length > 0) {
+        invalidCases.push(invalid);
+      }
     });
 
-    return acc;
+    return { ...acc, valid: validCases, invalid: invalidCases };
   },
   { valid: [], invalid: [] },
 );

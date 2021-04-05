@@ -3,7 +3,8 @@
 exports[`type-declaration index-access3 1`] = `
 ScopeManager {
   variables: Array [
-    Variable$1 {
+    ImplicitGlobalConstTypeVariable,
+    Variable$2 {
       defs: Array [
         TypeDefinition$1 {
           name: Identifier<"T">,
@@ -14,15 +15,17 @@ ScopeManager {
       references: Array [
         Reference$3 {
           identifier: Identifier<"T">,
+          isRead: true,
           isTypeReference: true,
           isValueReference: false,
-          resolved: Variable$1,
+          isWrite: false,
+          resolved: Variable$2,
         },
       ],
       isValueVariable: false,
       isTypeVariable: true,
     },
-    Variable$2 {
+    Variable$3 {
       defs: Array [
         VariableDefinition$2 {
           name: Identifier<"k">,
@@ -34,22 +37,26 @@ ScopeManager {
         Reference$1 {
           identifier: Identifier<"k">,
           init: true,
+          isRead: false,
           isTypeReference: false,
           isValueReference: true,
-          resolved: Variable$2,
+          isWrite: true,
+          resolved: Variable$3,
           writeExpr: Literal$3,
         },
         Reference$2 {
           identifier: Identifier<"k">,
+          isRead: true,
           isTypeReference: false,
           isValueReference: true,
-          resolved: Variable$2,
+          isWrite: false,
+          resolved: Variable$3,
         },
       ],
       isValueVariable: true,
       isTypeVariable: false,
     },
-    Variable$3 {
+    Variable$4 {
       defs: Array [
         TypeDefinition$3 {
           name: Identifier<"A">,
@@ -72,16 +79,18 @@ ScopeManager {
         Reference$3,
       ],
       set: Map {
-        "T" => Variable$1,
-        "k" => Variable$2,
-        "A" => Variable$3,
+        "const" => ImplicitGlobalConstTypeVariable,
+        "T" => Variable$2,
+        "k" => Variable$3,
+        "A" => Variable$4,
       },
       type: "global",
       upper: null,
       variables: Array [
-        Variable$1,
+        ImplicitGlobalConstTypeVariable,
         Variable$2,
         Variable$3,
+        Variable$4,
       ],
     },
   ],

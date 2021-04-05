@@ -151,6 +151,11 @@ export function preprocessBabylonAST(ast: BabelTypes.File): any {
           };
         }
       },
+      TSTypePredicate(node) {
+        if (!node.typeAnnotation) {
+          node.typeAnnotation = null;
+        }
+      },
       MethodDefinition(node) {
         /**
          * Babel: MethodDefinition + abstract: true
@@ -220,7 +225,7 @@ export function preprocessBabylonAST(ast: BabelTypes.File): any {
       /**
        * Template strings seem to also be affected by the difference in opinion between different parsers in
        * @see https://github.com/babel/babel/issues/6681
-       * @see https://github.com/babel/babel-eslint/blob/master/lib/babylon-to-espree/convertAST.js#L81-L96
+       * @see https://github.com/babel/babel/blob/main/eslint/babel-eslint-parser/src/convert/convertAST.js#L64-L80
        */
       TemplateLiteral(node: any) {
         for (let j = 0; j < node.quasis.length; j++) {
@@ -234,44 +239,6 @@ export function preprocessBabylonAST(ast: BabelTypes.File): any {
             q.range[1] += 2;
             q.loc.end.column += 2;
           }
-        }
-      },
-      /**
-       * TS 3.7: optional chaining
-       * babel: sets optional property as true/undefined
-       * ts-estree: sets optional property as true/false
-       */
-      MemberExpression(node) {
-        if (!node.optional) {
-          node.optional = false;
-        }
-      },
-      CallExpression(node) {
-        if (!node.optional) {
-          node.optional = false;
-        }
-      },
-      OptionalCallExpression(node) {
-        if (!node.optional) {
-          node.optional = false;
-        }
-      },
-      /**
-       * TS 3.7: type assertion function
-       * babel: sets asserts property as true/undefined
-       * ts-estree: sets asserts property as true/false
-       */
-      TSTypePredicate(node) {
-        if (!node.asserts) {
-          node.asserts = false;
-        }
-      },
-      ImportDeclaration(node) {
-        /**
-         * TS 3.8: import type
-         */
-        if (!node.importKind) {
-          node.importKind = 'value';
         }
       },
     },

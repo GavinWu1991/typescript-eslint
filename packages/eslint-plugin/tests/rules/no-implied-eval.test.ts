@@ -6,6 +6,7 @@ const ruleTester = new RuleTester({
   parserOptions: {
     tsconfigRootDir: rootDir,
     ecmaVersion: 2015,
+    sourceType: 'module',
     project: './tsconfig.json',
   },
   parser: '@typescript-eslint/parser',
@@ -240,6 +241,21 @@ const fn = (foo: () => void) => {
   setImmediate(foo);
   execScript(foo);
 };
+    `,
+    `
+import { Function } from './class';
+new Function('foo');
+    `,
+    `
+const foo = (callback: Function) => {
+  setTimeout(callback, 0);
+};
+    `,
+    `
+const foo = () => {};
+const bar = () => {};
+
+setTimeout(Math.radom() > 0.5 ? foo : bar, 0);
     `,
   ],
 
@@ -591,6 +607,21 @@ const fn = (foo: string | any) => {
           messageId: 'noImpliedEvalError',
           line: 6,
           column: 14,
+        },
+      ],
+    },
+    {
+      code: `
+const foo = 'foo';
+const bar = () => {};
+
+setTimeout(Math.radom() > 0.5 ? foo : bar, 0);
+      `,
+      errors: [
+        {
+          messageId: 'noImpliedEvalError',
+          line: 5,
+          column: 12,
         },
       ],
     },

@@ -1,7 +1,6 @@
-import unescape from 'lodash/unescape';
 import * as ts from 'typescript';
 import { AST_NODE_TYPES, AST_TOKEN_TYPES, TSESTree } from './ts-estree';
-import { typescriptVersionIsAtLeast } from './version-check';
+import { xhtmlEntities } from './jsx/xhtml-entities';
 
 const SyntaxKind = ts.SyntaxKind;
 
@@ -166,7 +165,9 @@ export function getLastModifier(node: ts.Node): ts.Modifier | null {
  * @param token the TypeScript token
  * @returns is comma
  */
-export function isComma(token: ts.Node): boolean {
+export function isComma(
+  token: ts.Node,
+): token is ts.Token<ts.SyntaxKind.CommaToken> {
   return token.kind === SyntaxKind.CommaToken;
 }
 
@@ -187,7 +188,7 @@ export function isComment(node: ts.Node): boolean {
  * @param node the TypeScript node
  * @returns is JSDoc comment
  */
-export function isJSDocComment(node: ts.Node): boolean {
+export function isJSDocComment(node: ts.Node): node is ts.JSDoc {
   return node.kind === SyntaxKind.JSDocComment;
 }
 
@@ -286,7 +287,7 @@ export function getRange(node: ts.Node, ast: ts.SourceFile): [number, number] {
  * @param node the ts.Node
  * @returns is a token
  */
-export function isToken(node: ts.Node): boolean {
+export function isToken(node: ts.Node): node is ts.Token<ts.TokenSyntaxKind> {
   return (
     node.kind >= SyntaxKind.FirstToken && node.kind <= SyntaxKind.LastToken
   );
@@ -415,7 +416,19 @@ export function hasJSXAncestor(node: ts.Node): boolean {
  * @returns The unescaped string literal text.
  */
 export function unescapeStringLiteralText(text: string): string {
-  return unescape(text);
+  return text.replace(/&(?:#\d+|#x[\da-fA-F]+|[0-9a-zA-Z]+);/g, entity => {
+    const item = entity.slice(1, -1);
+    if (item[0] === '#') {
+      const codePoint =
+        item[1] === 'x'
+          ? parseInt(item.slice(2), 16)
+          : parseInt(item.slice(1), 10);
+      return codePoint > 0x10ffff // RangeError: Invalid code point
+        ? entity
+        : String.fromCodePoint(codePoint);
+    }
+    return xhtmlEntities[item] || entity;
+  });
 }
 
 /**
@@ -423,7 +436,9 @@ export function unescapeStringLiteralText(text: string): string {
  * @param node ts.Node to be checked
  * @returns is Computed Property
  */
-export function isComputedProperty(node: ts.Node): boolean {
+export function isComputedProperty(
+  node: ts.Node,
+): node is ts.ComputedPropertyName {
   return node.kind === SyntaxKind.ComputedPropertyName;
 }
 
@@ -443,58 +458,28 @@ export function isOptional(node: {
 /**
  * Returns true if the node is an optional chain node
  */
-export function isOptionalChain(
+export function isChainExpression(
   node: TSESTree.Node,
-): node is TSESTree.OptionalCallExpression | TSESTree.OptionalMemberExpression {
-  return (
-    node.type === AST_NODE_TYPES.OptionalCallExpression ||
-    node.type == AST_NODE_TYPES.OptionalMemberExpression
-  );
+): node is TSESTree.ChainExpression {
+  return node.type === AST_NODE_TYPES.ChainExpression;
 }
 
 /**
  * Returns true of the child of property access expression is an optional chain
  */
-export function isChildOptionalChain(
+export function isChildUnwrappableOptionalChain(
   node:
     | ts.PropertyAccessExpression
     | ts.ElementAccessExpression
-    | ts.CallExpression,
-  object: TSESTree.LeftHandSideExpression,
+    | ts.CallExpression
+    | ts.NonNullExpression,
+  child: TSESTree.Node,
 ): boolean {
-  if (
-    isOptionalChain(object) &&
+  return (
+    isChainExpression(child) &&
     // (x?.y).z is semantically different, and as such .z is no longer optional
     node.expression.kind !== ts.SyntaxKind.ParenthesizedExpression
-  ) {
-    return true;
-  }
-
-  if (!typescriptVersionIsAtLeast['3.9']) {
-    return false;
-  }
-
-  // TS3.9 made a breaking change to how non-null works with optional chains.
-  // Pre-3.9,  `x?.y!.z` means `(x?.y).z` - i.e. it essentially scrubbed the optionality from the chain
-  // Post-3.9, `x?.y!.z` means `x?.y!.z`  - i.e. it just asserts that the property `y` is non-null, not the result of `x?.y`
-
-  if (
-    object.type !== AST_NODE_TYPES.TSNonNullExpression ||
-    !isOptionalChain(object.expression)
-  ) {
-    return false;
-  }
-
-  if (
-    // make sure it's not (x.y)!.z
-    node.expression.kind === ts.SyntaxKind.NonNullExpression &&
-    (node.expression as ts.NonNullExpression).expression.kind !==
-      ts.SyntaxKind.ParenthesizedExpression
-  ) {
-    return true;
-  }
-
-  return false;
+  );
 }
 
 /**
@@ -601,7 +586,7 @@ export function getTokenType(
  * @returns the converted Token
  */
 export function convertToken(
-  token: ts.Node,
+  token: ts.Token<ts.TokenSyntaxKind>,
   ast: ts.SourceFile,
 ): TSESTree.Token {
   const start =
@@ -664,16 +649,26 @@ export function convertTokens(ast: ts.SourceFile): TSESTree.Token[] {
   return result;
 }
 
-export interface TSError {
-  index: number;
-  lineNumber: number;
-  column: number;
-  message: string;
+export class TSError extends Error {
+  constructor(
+    message: string,
+    public readonly fileName: string,
+    public readonly index: number,
+    public readonly lineNumber: number,
+    public readonly column: number,
+  ) {
+    super(message);
+    Object.defineProperty(this, 'name', {
+      value: new.target.name,
+      enumerable: false,
+      configurable: true,
+    });
+  }
 }
 
 /**
  * @param ast     the AST object
- * @param start      the index at which the error starts
+ * @param start   the index at which the error starts
  * @param message the error message
  * @returns converted error object
  */
@@ -683,12 +678,7 @@ export function createError(
   message: string,
 ): TSError {
   const loc = ast.getLineAndCharacterOfPosition(start);
-  return {
-    index: start,
-    lineNumber: loc.line + 1,
-    column: loc.character,
-    message,
-  };
+  return new TSError(message, ast.fileName, start, loc.line + 1, loc.character);
 }
 
 /**

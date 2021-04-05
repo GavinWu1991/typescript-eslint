@@ -22,6 +22,7 @@ export default util.createRule({
       description: 'Disallow the use of `eval()`-like methods',
       category: 'Best Practices',
       recommended: 'error',
+      extendsBaseRule: true,
       requiresTypeChecking: true,
     },
     messages: {
@@ -35,6 +36,7 @@ export default util.createRule({
   defaultOptions: [],
   create(context) {
     const parserServices = util.getParserServices(context);
+    const program = parserServices.program;
     const checker = parserServices.program.getTypeChecker();
 
     function getCalleeName(
@@ -79,6 +81,16 @@ export default util.createRule({
         return true;
       }
 
+      if (symbol && symbol.escapedName === FUNCTION_CONSTRUCTOR) {
+        const declarations = symbol.getDeclarations() ?? [];
+        for (const declaration of declarations) {
+          const sourceFile = declaration.getSourceFile();
+          if (program.isSourceFileDefaultLibrary(sourceFile)) {
+            return true;
+          }
+        }
+      }
+
       const signatures = checker.getSignaturesOfType(
         type,
         ts.SignatureKind.Call,
@@ -96,6 +108,7 @@ export default util.createRule({
 
         case AST_NODE_TYPES.MemberExpression:
         case AST_NODE_TYPES.Identifier:
+        case AST_NODE_TYPES.ConditionalExpression:
           return isFunctionType(node);
 
         case AST_NODE_TYPES.CallExpression:
@@ -113,14 +126,29 @@ export default util.createRule({
     function checkImpliedEval(
       node: TSESTree.NewExpression | TSESTree.CallExpression,
     ): void {
+      const tsNode = parserServices.esTreeNodeToTSNodeMap.get(node.callee);
+      const type = checker.getTypeAtLocation(tsNode);
+
       const calleeName = getCalleeName(node.callee);
       if (calleeName === null) {
         return;
       }
 
       if (calleeName === FUNCTION_CONSTRUCTOR) {
-        context.report({ node, messageId: 'noFunctionConstructor' });
-        return;
+        const symbol = type.getSymbol();
+        if (symbol) {
+          const declarations = symbol.getDeclarations() ?? [];
+          for (const declaration of declarations) {
+            const sourceFile = declaration.getSourceFile();
+            if (program.isSourceFileDefaultLibrary(sourceFile)) {
+              context.report({ node, messageId: 'noFunctionConstructor' });
+              return;
+            }
+          }
+        } else {
+          context.report({ node, messageId: 'noFunctionConstructor' });
+          return;
+        }
       }
 
       if (node.arguments.length === 0) {

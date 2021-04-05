@@ -3,7 +3,8 @@
 exports[`global-resolution script variable-decl-const 1`] = `
 ScopeManager {
   variables: Array [
-    Variable$1 {
+    ImplicitGlobalConstTypeVariable,
+    Variable$2 {
       defs: Array [
         VariableDefinition$1 {
           name: Identifier<"top">,
@@ -15,16 +16,20 @@ ScopeManager {
         Reference$1 {
           identifier: Identifier<"top">,
           init: true,
+          isRead: false,
           isTypeReference: false,
           isValueReference: true,
-          resolved: Variable$1,
+          isWrite: true,
+          resolved: Variable$2,
           writeExpr: ArrowFunctionExpression$2,
         },
         Reference$2 {
           identifier: Identifier<"top">,
+          isRead: true,
           isTypeReference: false,
           isValueReference: true,
-          resolved: Variable$1,
+          isWrite: false,
+          resolved: Variable$2,
         },
       ],
       isValueVariable: true,
@@ -40,12 +45,14 @@ ScopeManager {
         Reference$2,
       ],
       set: Map {
-        "top" => Variable$1,
+        "const" => ImplicitGlobalConstTypeVariable,
+        "top" => Variable$2,
       },
       type: "global",
       upper: null,
       variables: Array [
-        Variable$1,
+        ImplicitGlobalConstTypeVariable,
+        Variable$2,
       ],
     },
     FunctionScope$2 {

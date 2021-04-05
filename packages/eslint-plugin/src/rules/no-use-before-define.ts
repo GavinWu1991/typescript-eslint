@@ -16,6 +16,7 @@ function parseOptions(options: string | Config | null): Required<Config> {
   let enums = true;
   let variables = true;
   let typedefs = true;
+  let ignoreTypeReferences = true;
 
   if (typeof options === 'string') {
     functions = options !== 'nofunc';
@@ -25,33 +26,17 @@ function parseOptions(options: string | Config | null): Required<Config> {
     enums = options.enums !== false;
     variables = options.variables !== false;
     typedefs = options.typedefs !== false;
+    ignoreTypeReferences = options.ignoreTypeReferences !== false;
   }
 
-  return { functions, classes, enums, variables, typedefs };
-}
-
-/**
- * Checks whether or not a given scope is a top level scope.
- */
-function isTopLevelScope(scope: TSESLint.Scope.Scope): boolean {
-  return scope.type === 'module' || scope.type === 'global';
-}
-
-/**
- * Checks whether or not a given variable declaration in an upper scope.
- */
-function isOuterScope(
-  variable: TSESLint.Scope.Variable,
-  reference: TSESLint.Scope.Reference,
-): boolean {
-  if (variable.scope.variableScope === reference.from.variableScope) {
-    // allow the same scope only if it's the top level global/module scope
-    if (!isTopLevelScope(variable.scope.variableScope)) {
-      return false;
-    }
-  }
-
-  return true;
+  return {
+    functions,
+    classes,
+    enums,
+    variables,
+    typedefs,
+    ignoreTypeReferences,
+  };
 }
 
 /**
@@ -62,17 +47,22 @@ function isFunction(variable: TSESLint.Scope.Variable): boolean {
 }
 
 /**
- * Checks whether or not a given variable is a enum declaration in an upper function scope.
+ * Checks whether or not a given variable is a type declaration.
+ */
+function isTypedef(variable: TSESLint.Scope.Variable): boolean {
+  return variable.defs[0].type === 'Type';
+}
+
+/**
+ * Checks whether or not a given variable is a enum declaration.
  */
 function isOuterEnum(
   variable: TSESLint.Scope.Variable,
   reference: TSESLint.Scope.Reference,
 ): boolean {
-  const node = variable.defs[0].node as TSESTree.Node;
-
   return (
-    node.type === AST_NODE_TYPES.TSEnumDeclaration &&
-    isOuterScope(variable, reference)
+    variable.defs[0].type == 'TSEnumName' &&
+    variable.scope.variableScope !== reference.from.variableScope
   );
 }
 
@@ -84,7 +74,8 @@ function isOuterClass(
   reference: TSESLint.Scope.Reference,
 ): boolean {
   return (
-    variable.defs[0].type === 'ClassName' && isOuterScope(variable, reference)
+    variable.defs[0].type === 'ClassName' &&
+    variable.scope.variableScope !== reference.from.variableScope
   );
 }
 
@@ -96,7 +87,39 @@ function isOuterVariable(
   reference: TSESLint.Scope.Reference,
 ): boolean {
   return (
-    variable.defs[0].type === 'Variable' && isOuterScope(variable, reference)
+    variable.defs[0].type === 'Variable' &&
+    variable.scope.variableScope !== reference.from.variableScope
+  );
+}
+
+/**
+ * Recursively checks whether or not a given reference has a type query declaration among it's parents
+ */
+function referenceContainsTypeQuery(node: TSESTree.Node): boolean {
+  switch (node.type) {
+    case AST_NODE_TYPES.TSTypeQuery:
+      return true;
+
+    case AST_NODE_TYPES.TSQualifiedName:
+    case AST_NODE_TYPES.Identifier:
+      if (!node.parent) {
+        return false;
+      }
+      return referenceContainsTypeQuery(node.parent);
+
+    default:
+      // if we find a different node, there's no chance that we're in a TSTypeQuery
+      return false;
+  }
+}
+
+/**
+ * Checks whether or not a given reference is a type reference.
+ */
+function isTypeReference(reference: TSESLint.Scope.Reference): boolean {
+  return (
+    reference.isTypeReference ||
+    referenceContainsTypeQuery(reference.identifier)
   );
 }
 
@@ -108,6 +131,37 @@ function isInRange(
   location: number,
 ): boolean {
   return !!node && node.range[0] <= location && location <= node.range[1];
+}
+
+/**
+ * Decorators are transpiled such that the decorator is placed after the class declaration
+ * So it is considered safe
+ */
+function isClassRefInClassDecorator(
+  variable: TSESLint.Scope.Variable,
+  reference: TSESLint.Scope.Reference,
+): boolean {
+  if (variable.defs[0].type !== 'ClassName') {
+    return false;
+  }
+
+  if (
+    !variable.defs[0].node.decorators ||
+    variable.defs[0].node.decorators.length === 0
+  ) {
+    return false;
+  }
+
+  for (const deco of variable.defs[0].node.decorators) {
+    if (
+      reference.identifier.range[0] >= deco.range[0] &&
+      reference.identifier.range[1] <= deco.range[1]
+    ) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 /**
@@ -165,6 +219,7 @@ interface Config {
   enums?: boolean;
   variables?: boolean;
   typedefs?: boolean;
+  ignoreTypeReferences?: boolean;
 }
 type Options = ['nofunc' | Config];
 type MessageIds = 'noUseBeforeDefine';
@@ -196,6 +251,7 @@ export default util.createRule<Options, MessageIds>({
               enums: { type: 'boolean' },
               variables: { type: 'boolean' },
               typedefs: { type: 'boolean' },
+              ignoreTypeReferences: { type: 'boolean' },
             },
             additionalProperties: false,
           },
@@ -210,6 +266,7 @@ export default util.createRule<Options, MessageIds>({
       enums: true,
       variables: true,
       typedefs: true,
+      ignoreTypeReferences: true,
     },
   ],
   create(context, optionsWithDefault) {
@@ -224,17 +281,23 @@ export default util.createRule<Options, MessageIds>({
       variable: TSESLint.Scope.Variable,
       reference: TSESLint.Scope.Reference,
     ): boolean {
+      if (options.ignoreTypeReferences && isTypeReference(reference)) {
+        return false;
+      }
       if (isFunction(variable)) {
-        return !!options.functions;
+        return options.functions;
       }
       if (isOuterClass(variable, reference)) {
-        return !!options.classes;
+        return options.classes;
       }
       if (isOuterVariable(variable, reference)) {
-        return !!options.variables;
+        return options.variables;
       }
       if (isOuterEnum(variable, reference)) {
-        return !!options.enums;
+        return options.enums;
+      }
+      if (isTypedef(variable)) {
+        return options.typedefs;
       }
 
       return true;
@@ -257,9 +320,11 @@ export default util.createRule<Options, MessageIds>({
           reference.init ||
           !variable ||
           variable.identifiers.length === 0 ||
-          (variable.identifiers[0].range[1] < reference.identifier.range[1] &&
+          (variable.identifiers[0].range[1] <= reference.identifier.range[1] &&
             !isInInitializer(variable, reference)) ||
-          !isForbidden(variable, reference)
+          !isForbidden(variable, reference) ||
+          isClassRefInClassDecorator(variable, reference) ||
+          reference.from.type === TSESLint.Scope.ScopeType.functionType
         ) {
           return;
         }

@@ -6,10 +6,12 @@ import banTslintComment from './ban-tslint-comment';
 import banTypes from './ban-types';
 import braceStyle from './brace-style';
 import classLiteralPropertyStyle from './class-literal-property-style';
+import commaDangle from './comma-dangle';
 import commaSpacing from './comma-spacing';
-import confusingNonNullAssertionLikeNotEqual from './no-confusing-non-null-assertion';
+import consistentIndexedObjectStyle from './consistent-indexed-object-style';
 import consistentTypeAssertions from './consistent-type-assertions';
 import consistentTypeDefinitions from './consistent-type-definitions';
+import consistentTypeImports from './consistent-type-imports';
 import defaultParamLast from './default-param-last';
 import dotNotation from './dot-notation';
 import explicitFunctionReturnType from './explicit-function-return-type';
@@ -26,22 +28,26 @@ import methodSignatureStyle from './method-signature-style';
 import namingConvention from './naming-convention';
 import noArrayConstructor from './no-array-constructor';
 import noBaseToString from './no-base-to-string';
+import confusingNonNullAssertionLikeNotEqual from './no-confusing-non-null-assertion';
+import noConfusingVoidExpression from './no-confusing-void-expression';
 import noDupeClassMembers from './no-dupe-class-members';
+import noDuplicateImports from './no-duplicate-imports';
 import noDynamicDelete from './no-dynamic-delete';
 import noEmptyFunction from './no-empty-function';
 import noEmptyInterface from './no-empty-interface';
 import noExplicitAny from './no-explicit-any';
-import noExtraneousClass from './no-extraneous-class';
 import noExtraNonNullAssertion from './no-extra-non-null-assertion';
 import noExtraParens from './no-extra-parens';
 import noExtraSemi from './no-extra-semi';
+import noExtraneousClass from './no-extraneous-class';
 import noFloatingPromises from './no-floating-promises';
 import noForInArray from './no-for-in-array';
-import preferLiteralEnumMember from './prefer-literal-enum-member';
+import noImplicitAnyCatch from './no-implicit-any-catch';
 import noImpliedEval from './no-implied-eval';
 import noInferrableTypes from './no-inferrable-types';
 import noInvalidThis from './no-invalid-this';
 import noInvalidVoidType from './no-invalid-void-type';
+import noLoopFunc from './no-loop-func';
 import noLossOfPrecision from './no-loss-of-precision';
 import noMagicNumbers from './no-magic-numbers';
 import noMisusedNew from './no-misused-new';
@@ -50,7 +56,9 @@ import noNamespace from './no-namespace';
 import noNonNullAssertedOptionalChain from './no-non-null-asserted-optional-chain';
 import noNonNullAssertion from './no-non-null-assertion';
 import noParameterProperties from './no-parameter-properties';
+import noRedeclare from './no-redeclare';
 import noRequireImports from './no-require-imports';
+import noShadow from './no-shadow';
 import noThisAlias from './no-this-alias';
 import noThrowLiteral from './no-throw-literal';
 import noTypeAlias from './no-type-alias';
@@ -59,6 +67,8 @@ import noUnnecessaryCondition from './no-unnecessary-condition';
 import noUnnecessaryQualifier from './no-unnecessary-qualifier';
 import noUnnecessaryTypeArguments from './no-unnecessary-type-arguments';
 import noUnnecessaryTypeAssertion from './no-unnecessary-type-assertion';
+import noUnnecessaryTypeConstraint from './no-unnecessary-type-constraint';
+import noUnsafeArgument from './no-unsafe-argument';
 import noUnsafeAssignment from './no-unsafe-assignment';
 import noUnsafeCall from './no-unsafe-call';
 import noUnsafeMemberAccess from './no-unsafe-member-access';
@@ -69,10 +79,14 @@ import noUnusedVarsExperimental from './no-unused-vars-experimental';
 import noUseBeforeDefine from './no-use-before-define';
 import noUselessConstructor from './no-useless-constructor';
 import noVarRequires from './no-var-requires';
+import nonNullableTypeAssertionStyle from './non-nullable-type-assertion-style';
+import objectCurlySpacing from './object-curly-spacing';
 import preferAsConst from './prefer-as-const';
+import preferEnumInitializers from './prefer-enum-initializers';
 import preferForOf from './prefer-for-of';
 import preferFunctionType from './prefer-function-type';
 import preferIncludes from './prefer-includes';
+import preferLiteralEnumMember from './prefer-literal-enum-member';
 import preferNamespaceKeyword from './prefer-namespace-keyword';
 import preferNullishCoalescing from './prefer-nullish-coalescing';
 import preferOptionalChain from './prefer-optional-chain';
@@ -90,7 +104,9 @@ import restrictPlusOperands from './restrict-plus-operands';
 import restrictTemplateExpressions from './restrict-template-expressions';
 import returnAwait from './return-await';
 import semi from './semi';
+import sortTypeUnionIntersectionMembers from './sort-type-union-intersection-members';
 import spaceBeforeFunctionParen from './space-before-function-paren';
+import spaceInfixOps from './space-infix-ops';
 import strictBooleanExpressions from './strict-boolean-expressions';
 import switchExhaustivenessCheck from './switch-exhaustiveness-check';
 import tripleSlashReference from './triple-slash-reference';
@@ -108,10 +124,12 @@ export default {
   'ban-types': banTypes,
   'brace-style': braceStyle,
   'class-literal-property-style': classLiteralPropertyStyle,
+  'comma-dangle': commaDangle,
   'comma-spacing': commaSpacing,
-  'no-confusing-non-null-assertion': confusingNonNullAssertionLikeNotEqual,
+  'consistent-indexed-object-style': consistentIndexedObjectStyle,
   'consistent-type-assertions': consistentTypeAssertions,
   'consistent-type-definitions': consistentTypeDefinitions,
+  'consistent-type-imports': consistentTypeImports,
   'default-param-last': defaultParamLast,
   'dot-notation': dotNotation,
   'explicit-function-return-type': explicitFunctionReturnType,
@@ -121,13 +139,17 @@ export default {
   indent: indent,
   'init-declarations': initDeclarations,
   'keyword-spacing': keywordSpacing,
+  'lines-between-class-members': linesBetweenClassMembers,
   'member-delimiter-style': memberDelimiterStyle,
   'member-ordering': memberOrdering,
   'method-signature-style': methodSignatureStyle,
   'naming-convention': namingConvention,
   'no-array-constructor': noArrayConstructor,
   'no-base-to-string': noBaseToString,
+  'no-confusing-non-null-assertion': confusingNonNullAssertionLikeNotEqual,
+  'no-confusing-void-expression': noConfusingVoidExpression,
   'no-dupe-class-members': noDupeClassMembers,
+  'no-duplicate-imports': noDuplicateImports,
   'no-dynamic-delete': noDynamicDelete,
   'no-empty-function': noEmptyFunction,
   'no-empty-interface': noEmptyInterface,
@@ -138,10 +160,13 @@ export default {
   'no-extraneous-class': noExtraneousClass,
   'no-floating-promises': noFloatingPromises,
   'no-for-in-array': noForInArray,
+  'no-implicit-any-catch': noImplicitAnyCatch,
   'no-implied-eval': noImpliedEval,
   'no-inferrable-types': noInferrableTypes,
   'no-invalid-this': noInvalidThis,
   'no-invalid-void-type': noInvalidVoidType,
+  'no-loop-func': noLoopFunc,
+  'no-loss-of-precision': noLossOfPrecision,
   'no-magic-numbers': noMagicNumbers,
   'no-misused-new': noMisusedNew,
   'no-misused-promises': noMisusedPromises,
@@ -149,7 +174,9 @@ export default {
   'no-non-null-asserted-optional-chain': noNonNullAssertedOptionalChain,
   'no-non-null-assertion': noNonNullAssertion,
   'no-parameter-properties': noParameterProperties,
+  'no-redeclare': noRedeclare,
   'no-require-imports': noRequireImports,
+  'no-shadow': noShadow,
   'no-this-alias': noThisAlias,
   'no-throw-literal': noThrowLiteral,
   'no-type-alias': noTypeAlias,
@@ -158,17 +185,22 @@ export default {
   'no-unnecessary-qualifier': noUnnecessaryQualifier,
   'no-unnecessary-type-arguments': noUnnecessaryTypeArguments,
   'no-unnecessary-type-assertion': noUnnecessaryTypeAssertion,
+  'no-unnecessary-type-constraint': noUnnecessaryTypeConstraint,
+  'no-unsafe-argument': noUnsafeArgument,
   'no-unsafe-assignment': noUnsafeAssignment,
   'no-unsafe-call': noUnsafeCall,
   'no-unsafe-member-access': noUnsafeMemberAccess,
   'no-unsafe-return': noUnsafeReturn,
   'no-unused-expressions': noUnusedExpressions,
-  'no-unused-vars-experimental': noUnusedVarsExperimental,
   'no-unused-vars': noUnusedVars,
+  'no-unused-vars-experimental': noUnusedVarsExperimental,
   'no-use-before-define': noUseBeforeDefine,
   'no-useless-constructor': noUselessConstructor,
   'no-var-requires': noVarRequires,
+  'non-nullable-type-assertion-style': nonNullableTypeAssertionStyle,
+  'object-curly-spacing': objectCurlySpacing,
   'prefer-as-const': preferAsConst,
+  'prefer-enum-initializers': preferEnumInitializers,
   'prefer-for-of': preferForOf,
   'prefer-function-type': preferFunctionType,
   'prefer-includes': preferIncludes,
@@ -176,8 +208,8 @@ export default {
   'prefer-namespace-keyword': preferNamespaceKeyword,
   'prefer-nullish-coalescing': preferNullishCoalescing,
   'prefer-optional-chain': preferOptionalChain,
-  'prefer-readonly-parameter-types': preferReadonlyParameterTypes,
   'prefer-readonly': preferReadonly,
+  'prefer-readonly-parameter-types': preferReadonlyParameterTypes,
   'prefer-reduce-type-parameter': preferReduceTypeParameter,
   'prefer-regexp-exec': preferRegexpExec,
   'prefer-string-starts-ends-with': preferStringStartsEndsWith,
@@ -190,7 +222,9 @@ export default {
   'restrict-template-expressions': restrictTemplateExpressions,
   'return-await': returnAwait,
   semi: semi,
+  'sort-type-union-intersection-members': sortTypeUnionIntersectionMembers,
   'space-before-function-paren': spaceBeforeFunctionParen,
+  'space-infix-ops': spaceInfixOps,
   'strict-boolean-expressions': strictBooleanExpressions,
   'switch-exhaustiveness-check': switchExhaustivenessCheck,
   'triple-slash-reference': tripleSlashReference,
@@ -198,6 +232,4 @@ export default {
   typedef: typedef,
   'unbound-method': unboundMethod,
   'unified-signatures': unifiedSignatures,
-  'lines-between-class-members': linesBetweenClassMembers,
-  'no-loss-of-precision': noLossOfPrecision,
 };

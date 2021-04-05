@@ -2,6 +2,7 @@ import { TSESTree, AST_NODE_TYPES } from '@typescript-eslint/types';
 import { Referencer } from './Referencer';
 import { Visitor } from './Visitor';
 import { ParameterDefinition, TypeDefinition } from '../definition';
+import { ScopeType } from '../scope';
 
 class TypeVisitor extends Visitor {
   readonly #referencer: Referencer;
@@ -33,6 +34,7 @@ class TypeVisitor extends Visitor {
     this.visit(node.typeParameters);
 
     for (const param of node.params) {
+      let didVisitAnnotation = false;
       this.visitPattern(param, (pattern, info) => {
         // a parameter name creates a value type variable which can be referenced later via typeof arg
         this.#referencer
@@ -41,8 +43,17 @@ class TypeVisitor extends Visitor {
             pattern,
             new ParameterDefinition(pattern, node, info.rest),
           );
-        this.visit(pattern.typeAnnotation);
+
+        if (pattern.typeAnnotation) {
+          this.visit(pattern.typeAnnotation);
+          didVisitAnnotation = true;
+        }
       });
+
+      // there are a few special cases where the type annotation is owned by the parameter, not the pattern
+      if (!didVisitAnnotation && 'typeAnnotation' in param) {
+        this.visit(param.typeAnnotation);
+      }
     }
     this.visit(node.returnType);
 
@@ -83,9 +94,12 @@ class TypeVisitor extends Visitor {
     // which are only accessible from inside the conditional parameter
     this.#referencer.scopeManager.nestConditionalTypeScope(node);
 
-    this.visitChildren(node);
+    // type parameters inferred in the condition clause are not accessible within the false branch
+    this.visitChildren(node, ['falseType']);
 
     this.#referencer.close(node);
+
+    this.visit(node.falseType);
   }
 
   protected TSConstructorType(node: TSESTree.TSConstructorType): void {
@@ -102,6 +116,12 @@ class TypeVisitor extends Visitor {
     this.visitFunctionType(node);
   }
 
+  protected TSImportType(node: TSESTree.TSImportType): void {
+    // the TS parser allows any type to be the parameter, but it's a syntax error - so we can ignore it
+    this.visit(node.typeParameters);
+    // the qualifier is just part of a standard EntityName, so it should not be visited
+  }
+
   protected TSIndexSignature(node: TSESTree.TSIndexSignature): void {
     for (const param of node.parameters) {
       if (param.type === AST_NODE_TYPES.Identifier) {
@@ -109,6 +129,44 @@ class TypeVisitor extends Visitor {
       }
     }
     this.visit(node.typeAnnotation);
+  }
+
+  protected TSInferType(node: TSESTree.TSInferType): void {
+    const typeParameter = node.typeParameter;
+    let scope = this.#referencer.currentScope();
+
+    /*
+    In cases where there is a sub-type scope created within a conditional type, then the generic should be defined in the
+    conditional type's scope, not the child type scope.
+    If we define it within the child type's scope then it won't be able to be referenced outside the child type
+    */
+    if (
+      scope.type === ScopeType.functionType ||
+      scope.type === ScopeType.mappedType
+    ) {
+      // search up the scope tree to figure out if we're in a nested type scope
+      let currentScope = scope.upper;
+      while (currentScope) {
+        if (
+          currentScope.type === ScopeType.functionType ||
+          currentScope.type === ScopeType.mappedType
+        ) {
+          // ensure valid type parents only
+          currentScope = currentScope.upper;
+          continue;
+        }
+        if (currentScope.type === ScopeType.conditionalType) {
+          scope = currentScope;
+          break;
+        }
+        break;
+      }
+    }
+
+    scope.defineIdentifier(
+      typeParameter.name,
+      new TypeDefinition(typeParameter.name, typeParameter),
+    );
   }
 
   protected TSInterfaceDeclaration(
@@ -143,6 +201,11 @@ class TypeVisitor extends Visitor {
   protected TSMethodSignature(node: TSESTree.TSMethodSignature): void {
     this.visitPropertyKey(node);
     this.visitFunctionType(node);
+  }
+
+  protected TSNamedTupleMember(node: TSESTree.TSNamedTupleMember): void {
+    this.visit(node.elementType);
+    // we don't visit the label as the label only exists for the purposes of documentation
   }
 
   protected TSPropertySignature(node: TSESTree.TSPropertySignature): void {
@@ -184,6 +247,13 @@ class TypeVisitor extends Visitor {
     this.visit(node.default);
   }
 
+  protected TSTypePredicate(node: TSESTree.TSTypePredicate): void {
+    if (node.parameterName.type !== AST_NODE_TYPES.TSThisType) {
+      this.#referencer.currentScope().referenceValue(node.parameterName);
+    }
+    this.visit(node.typeAnnotation);
+  }
+
   // a type query `typeof foo` is a special case that references a _non-type_ variable,
   protected TSTypeQuery(node: TSESTree.TSTypeQuery): void {
     if (node.exprName.type === AST_NODE_TYPES.Identifier) {
@@ -195,6 +265,11 @@ class TypeVisitor extends Visitor {
       }
       this.#referencer.currentScope().referenceValue(expr);
     }
+  }
+
+  protected TSTypeAnnotation(node: TSESTree.TSTypeAnnotation): void {
+    // check
+    this.visitChildren(node);
   }
 }
 

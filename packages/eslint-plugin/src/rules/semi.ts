@@ -22,7 +22,10 @@ export default util.createRule<Options, MessageIds>({
     },
     fixable: 'code',
     schema: baseRule.meta.schema,
-    messages: baseRule.meta.messages,
+    messages: baseRule.meta.messages ?? {
+      missingSemi: 'Missing semicolon.',
+      extraSemi: 'Extra semicolon.',
+    },
   },
   defaultOptions: [
     'always',
@@ -33,9 +36,7 @@ export default util.createRule<Options, MessageIds>({
   ],
   create(context) {
     const rules = baseRule.create(context);
-    const checkForSemicolon = rules.ExpressionStatement as TSESLint.RuleFunction<
-      TSESTree.Node
-    >;
+    const checkForSemicolon = rules.ExpressionStatement as TSESLint.RuleFunction<TSESTree.Node>;
 
     /*
       The following nodes are handled by the member-delimiter-style rule

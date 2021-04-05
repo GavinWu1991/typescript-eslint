@@ -20,6 +20,11 @@ export interface EstreeToTsNodeTypes {
   [AST_NODE_TYPES.BreakStatement]: ts.BreakStatement;
   [AST_NODE_TYPES.CallExpression]: ts.CallExpression;
   [AST_NODE_TYPES.CatchClause]: ts.CatchClause;
+  [AST_NODE_TYPES.ChainExpression]:
+    | ts.CallExpression
+    | ts.PropertyAccessExpression
+    | ts.ElementAccessExpression
+    | ts.NonNullExpression;
   [AST_NODE_TYPES.ClassBody]: ts.ClassDeclaration | ts.ClassExpression;
   [AST_NODE_TYPES.ClassDeclaration]: ts.ClassDeclaration;
   [AST_NODE_TYPES.ClassExpression]: ts.ClassExpression;
@@ -68,7 +73,6 @@ export interface EstreeToTsNodeTypes {
     | ts.ConstructorDeclaration
     | ts.Token<ts.SyntaxKind.NewKeyword | ts.SyntaxKind.ImportKeyword>;
   [AST_NODE_TYPES.IfStatement]: ts.IfStatement;
-  [AST_NODE_TYPES.Import]: ts.ImportExpression;
   [AST_NODE_TYPES.ImportDeclaration]: ts.ImportDeclaration;
   [AST_NODE_TYPES.ImportDefaultSpecifier]: ts.ImportClause;
   [AST_NODE_TYPES.ImportExpression]: ts.CallExpression;
@@ -89,6 +93,7 @@ export interface EstreeToTsNodeTypes {
   [AST_NODE_TYPES.JSXSpreadAttribute]: ts.JsxSpreadAttribute;
   [AST_NODE_TYPES.JSXSpreadChild]: ts.JsxExpression;
   [AST_NODE_TYPES.JSXMemberExpression]: ts.PropertyAccessExpression;
+  [AST_NODE_TYPES.JSXNamespacedName]: ts.Identifier | ts.ThisExpression;
   [AST_NODE_TYPES.JSXText]: ts.JsxText;
   [AST_NODE_TYPES.LabeledStatement]: ts.LabeledStatement;
   [AST_NODE_TYPES.Literal]:
@@ -114,10 +119,6 @@ export interface EstreeToTsNodeTypes {
   [AST_NODE_TYPES.ObjectPattern]:
     | ts.ObjectLiteralExpression
     | ts.ObjectBindingPattern;
-  [AST_NODE_TYPES.OptionalCallExpression]: ts.CallExpression;
-  [AST_NODE_TYPES.OptionalMemberExpression]:
-    | ts.PropertyAccessExpression
-    | ts.ElementAccessExpression;
   [AST_NODE_TYPES.Program]: ts.SourceFile;
   [AST_NODE_TYPES.Property]:
     | ts.PropertyAssignment
@@ -157,15 +158,11 @@ export interface EstreeToTsNodeTypes {
     | ts.ConstructorDeclaration;
   [AST_NODE_TYPES.TSArrayType]: ts.ArrayTypeNode;
   [AST_NODE_TYPES.TSAsExpression]: ts.AsExpression;
-  [AST_NODE_TYPES.TSCallSignatureDeclaration]: ts.PropertySignature;
+  [AST_NODE_TYPES.TSCallSignatureDeclaration]: ts.CallSignatureDeclaration;
   [AST_NODE_TYPES.TSClassImplements]: ts.ExpressionWithTypeArguments;
   [AST_NODE_TYPES.TSConditionalType]: ts.ConditionalTypeNode;
   [AST_NODE_TYPES.TSConstructorType]: ts.ConstructorTypeNode;
-  [AST_NODE_TYPES.TSConstructSignatureDeclaration]:
-    | ts.ConstructorTypeNode
-    | ts.FunctionTypeNode
-    | ts.ConstructSignatureDeclaration
-    | ts.CallSignatureDeclaration;
+  [AST_NODE_TYPES.TSConstructSignatureDeclaration]: ts.ConstructSignatureDeclaration;
   [AST_NODE_TYPES.TSDeclareFunction]: ts.FunctionDeclaration;
   [AST_NODE_TYPES.TSEnumDeclaration]: ts.EnumDeclaration;
   [AST_NODE_TYPES.TSEnumMember]: ts.EnumMember;
@@ -186,6 +183,7 @@ export interface EstreeToTsNodeTypes {
   [AST_NODE_TYPES.TSMethodSignature]: ts.MethodSignature;
   [AST_NODE_TYPES.TSModuleBlock]: ts.ModuleBlock;
   [AST_NODE_TYPES.TSModuleDeclaration]: ts.ModuleDeclaration;
+  [AST_NODE_TYPES.TSNamedTupleMember]: ts.NamedTupleMember;
   [AST_NODE_TYPES.TSNamespaceExportDeclaration]: ts.NamespaceExportDeclaration;
   [AST_NODE_TYPES.TSNonNullExpression]: ts.NonNullExpression;
   [AST_NODE_TYPES.TSOptionalType]: ts.OptionalTypeNode;
@@ -193,9 +191,13 @@ export interface EstreeToTsNodeTypes {
   [AST_NODE_TYPES.TSParenthesizedType]: ts.ParenthesizedTypeNode;
   [AST_NODE_TYPES.TSPropertySignature]: ts.PropertySignature;
   [AST_NODE_TYPES.TSQualifiedName]: ts.QualifiedName;
-  [AST_NODE_TYPES.TSRestType]: ts.RestTypeNode;
+  [AST_NODE_TYPES.TSRestType]:
+    | ts.RestTypeNode
+    // for consistency and following babel's choices, a named tuple member with a rest gets converted to a TSRestType
+    | ts.NamedTupleMember;
   [AST_NODE_TYPES.TSThisType]: ts.ThisTypeNode;
   [AST_NODE_TYPES.TSTupleType]: ts.TupleTypeNode;
+  [AST_NODE_TYPES.TSTemplateLiteralType]: ts.TemplateLiteralTypeNode;
   [AST_NODE_TYPES.TSTypeAliasDeclaration]: ts.TypeAliasDeclaration;
   [AST_NODE_TYPES.TSTypeAnnotation]: undefined;
   [AST_NODE_TYPES.TSTypeAssertion]: ts.TypeAssertion;
@@ -249,6 +251,7 @@ export interface EstreeToTsNodeTypes {
   [AST_NODE_TYPES.TSAnyKeyword]: ts.KeywordTypeNode;
   [AST_NODE_TYPES.TSBigIntKeyword]: ts.KeywordTypeNode;
   [AST_NODE_TYPES.TSBooleanKeyword]: ts.KeywordTypeNode;
+  [AST_NODE_TYPES.TSIntrinsicKeyword]: ts.KeywordTypeNode;
   [AST_NODE_TYPES.TSNeverKeyword]: ts.KeywordTypeNode;
   [AST_NODE_TYPES.TSNumberKeyword]: ts.KeywordTypeNode;
   [AST_NODE_TYPES.TSObjectKeyword]: ts.KeywordTypeNode;
@@ -275,5 +278,6 @@ export interface EstreeToTsNodeTypes {
  */
 export type TSESTreeToTSNode<T extends TSESTree.Node = TSESTree.Node> = Extract<
   TSNode | ts.Token<ts.SyntaxKind.NewKeyword | ts.SyntaxKind.ImportKeyword>,
+  // if this errors, it means that one of the AST_NODE_TYPES is not defined in the above interface
   EstreeToTsNodeTypes[T['type']]
 >;

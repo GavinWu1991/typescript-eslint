@@ -96,6 +96,10 @@ export default util.createRule<Options, MessageIds>({
     // tracks functions that were found whilst traversing
     const foundFunctions: FunctionNode[] = [];
 
+    // all nodes visited, avoids infinite recursion for cyclic references
+    // (such as class member referring to itself)
+    const alreadyVisited = new Set<TSESTree.Node>();
+
     /*
     # How the rule works:
 
@@ -220,14 +224,18 @@ export default util.createRule<Options, MessageIds>({
         return false;
       }
 
-      if (node.type === AST_NODE_TYPES.VariableDeclarator) {
+      if (
+        node.type === AST_NODE_TYPES.VariableDeclarator ||
+        node.type === AST_NODE_TYPES.FunctionDeclaration
+      ) {
         return (
-          node.id.type === AST_NODE_TYPES.Identifier &&
+          node.id?.type === AST_NODE_TYPES.Identifier &&
           options.allowedNames.includes(node.id.name)
         );
       } else if (
         node.type === AST_NODE_TYPES.MethodDefinition ||
-        node.type === AST_NODE_TYPES.TSAbstractMethodDefinition
+        node.type === AST_NODE_TYPES.TSAbstractMethodDefinition ||
+        (node.type === AST_NODE_TYPES.Property && node.method)
       ) {
         if (
           node.key.type === AST_NODE_TYPES.Literal &&
@@ -311,9 +319,10 @@ export default util.createRule<Options, MessageIds>({
     }
 
     function checkNode(node: TSESTree.Node | null): void {
-      if (node == null) {
+      if (node == null || alreadyVisited.has(node)) {
         return;
       }
+      alreadyVisited.add(node);
 
       switch (node.type) {
         case AST_NODE_TYPES.ArrowFunctionExpression:
@@ -385,6 +394,10 @@ export default util.createRule<Options, MessageIds>({
     function ancestorHasReturnType(node: FunctionNode): boolean {
       let ancestor = node.parent;
 
+      if (ancestor?.type === AST_NODE_TYPES.Property) {
+        ancestor = ancestor.value;
+      }
+
       // if the ancestor is not a return, then this function was not returned at all, so we can exit early
       const isReturnStatement =
         ancestor?.type === AST_NODE_TYPES.ReturnStatement;
@@ -427,7 +440,11 @@ export default util.createRule<Options, MessageIds>({
       const isConstructor =
         node.parent?.type === AST_NODE_TYPES.MethodDefinition &&
         node.parent.kind === 'constructor';
-      if (!isConstructor && !node.returnType) {
+      const isSetAccessor =
+        (node.parent?.type === AST_NODE_TYPES.TSAbstractMethodDefinition ||
+          node.parent?.type === AST_NODE_TYPES.MethodDefinition) &&
+        node.parent.kind === 'set';
+      if (!isConstructor && !isSetAccessor && !node.returnType) {
         context.report({
           node,
           messageId: 'missingReturnType',
@@ -468,7 +485,7 @@ export default util.createRule<Options, MessageIds>({
       }
       checkedFunctions.add(node);
 
-      if (isAllowedName(node.parent) || ancestorHasReturnType(node)) {
+      if (isAllowedName(node) || ancestorHasReturnType(node)) {
         return;
       }
 

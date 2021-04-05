@@ -26,6 +26,7 @@ module.exports = {
     ],
     tsconfigRootDir: __dirname,
     warnOnUnsupportedTypeScriptVersion: false,
+    EXPERIMENTAL_useSourceOfProjectReferenceRedirect: true,
   },
   rules: {
     //
@@ -177,11 +178,15 @@ module.exports = {
         'jest/no-jasmine-globals': 'error',
         'jest/no-jest-import': 'error',
         'jest/no-test-prefixes': 'error',
-        'jest/no-test-callback': 'error',
+        'jest/no-done-callback': 'error',
         'jest/no-test-return-statement': 'error',
+        'jest/prefer-to-be-null': 'warn',
+        'jest/prefer-to-be-undefined': 'warn',
+        'jest/prefer-to-contain': 'warn',
         'jest/prefer-to-have-length': 'warn',
         'jest/prefer-spy-on': 'error',
         'jest/valid-expect': 'error',
+        'jest/no-deprecated-functions': 'error',
       },
     },
     // plugin source files
@@ -214,9 +219,19 @@ module.exports = {
         'packages/eslint-plugin-internal/tests/rules/**/*.test.ts',
         'packages/eslint-plugin-tslint/tests/rules/**/*.test.ts',
         'packages/eslint-plugin/tests/rules/**/*.test.ts',
+        'packages/eslint-plugin/tests/eslint-rules/**/*.test.ts',
       ],
       rules: {
         '@typescript-eslint/internal/plugin-test-formatting': 'error',
+      },
+    },
+    // files which list all the things
+    {
+      files: ['packages/eslint-plugin/src/rules/index.ts'],
+      rules: {
+        // enforce alphabetical ordering
+        'sort-keys': 'error',
+        'import/order': ['error', { alphabetize: { order: 'asc' } }],
       },
     },
     // tools and tests

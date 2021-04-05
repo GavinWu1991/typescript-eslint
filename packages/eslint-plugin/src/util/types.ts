@@ -11,6 +11,7 @@ import {
   isVariableDeclaration,
   unionTypeParts,
   isPropertyAssignment,
+  isBinaryExpression,
 } from 'tsutils';
 import * as ts from 'typescript';
 
@@ -365,6 +366,22 @@ export function isTypeAnyArrayType(
   );
 }
 
+/**
+ * @returns true if the type is `unknown[]`
+ */
+export function isTypeUnknownArrayType(
+  type: ts.Type,
+  checker: ts.TypeChecker,
+): boolean {
+  return (
+    checker.isArrayType(type) &&
+    isTypeUnknownType(
+      // getTypeArguments was only added in TS3.7
+      getTypeArguments(type, checker)[0],
+    )
+  );
+}
+
 export const enum AnyType {
   Any,
   AnyArray,
@@ -403,8 +420,15 @@ export function isUnsafeAssignment(
   receiver: ts.Type,
   checker: ts.TypeChecker,
 ): false | { sender: ts.Type; receiver: ts.Type } {
-  if (isTypeAnyType(type) && !isTypeAnyType(receiver)) {
-    return { sender: type, receiver };
+  if (isTypeAnyType(type)) {
+    // Allow assignment of any ==> unknown.
+    if (isTypeUnknownType(receiver)) {
+      return false;
+    }
+
+    if (!isTypeAnyType(receiver)) {
+      return { sender: type, receiver };
+    }
   }
 
   if (isTypeReference(type) && isTypeReference(receiver)) {
@@ -475,6 +499,13 @@ export function getContextualType(
     return checker.getContextualType(parent);
   } else if (isPropertyAssignment(parent) && isIdentifier(node)) {
     return checker.getContextualType(node);
+  } else if (
+    isBinaryExpression(parent) &&
+    parent.operatorToken.kind === ts.SyntaxKind.EqualsToken &&
+    parent.right === node
+  ) {
+    // is RHS of assignment
+    return checker.getTypeAtLocation(parent.left);
   } else if (
     ![ts.SyntaxKind.TemplateSpan, ts.SyntaxKind.JsxExpression].includes(
       parent.kind,

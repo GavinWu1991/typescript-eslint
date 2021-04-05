@@ -1,114 +1,51 @@
 /* eslint-disable @typescript-eslint/no-namespace */
 
-import { TSESTree } from '../ts-estree';
+import * as scopeManager from '@typescript-eslint/scope-manager';
 
 namespace Scope {
-  export interface ScopeManager {
-    scopes: Scope[];
-    globalScope: Scope | null;
+  export type ScopeManager = scopeManager.ScopeManager;
+  export type Reference = scopeManager.Reference;
+  export type Variable =
+    | scopeManager.Variable
+    | scopeManager.ESLintScopeVariable;
+  export type Scope = scopeManager.Scope;
+  export const ScopeType = scopeManager.ScopeType;
+  // TODO - in the next major, clean this up with a breaking change
+  export type DefinitionType = scopeManager.Definition;
+  export type Definition = scopeManager.Definition;
+  export const DefinitionType = scopeManager.DefinitionType;
 
-    acquire(node: TSESTree.Node, inner?: boolean): Scope | null;
-
-    getDeclaredVariables(node: TSESTree.Node): Variable[];
+  export namespace Definitions {
+    export type CatchClauseDefinition = scopeManager.CatchClauseDefinition;
+    export type ClassNameDefinition = scopeManager.ClassNameDefinition;
+    export type FunctionNameDefinition = scopeManager.FunctionNameDefinition;
+    export type ImplicitGlobalVariableDefinition = scopeManager.ImplicitGlobalVariableDefinition;
+    export type ImportBindingDefinition = scopeManager.ImportBindingDefinition;
+    export type ParameterDefinition = scopeManager.ParameterDefinition;
+    export type TSEnumMemberDefinition = scopeManager.TSEnumMemberDefinition;
+    export type TSEnumNameDefinition = scopeManager.TSEnumNameDefinition;
+    export type TSModuleNameDefinition = scopeManager.TSModuleNameDefinition;
+    export type TypeDefinition = scopeManager.TypeDefinition;
+    export type VariableDefinition = scopeManager.VariableDefinition;
   }
-
-  export interface Reference {
-    identifier: TSESTree.Identifier;
-    from: Scope;
-    resolved: Variable | null;
-    writeExpr: TSESTree.Node | null;
-    init: boolean;
-
-    isWrite(): boolean;
-
-    isRead(): boolean;
-
-    isWriteOnly(): boolean;
-
-    isReadOnly(): boolean;
-
-    isReadWrite(): boolean;
+  export namespace Scopes {
+    export type BlockScope = scopeManager.BlockScope;
+    export type CatchScope = scopeManager.CatchScope;
+    export type ClassScope = scopeManager.ClassScope;
+    export type ConditionalTypeScope = scopeManager.ConditionalTypeScope;
+    export type ForScope = scopeManager.ForScope;
+    export type FunctionExpressionNameScope = scopeManager.FunctionExpressionNameScope;
+    export type FunctionScope = scopeManager.FunctionScope;
+    export type FunctionTypeScope = scopeManager.FunctionTypeScope;
+    export type GlobalScope = scopeManager.GlobalScope;
+    export type MappedTypeScope = scopeManager.MappedTypeScope;
+    export type ModuleScope = scopeManager.ModuleScope;
+    export type SwitchScope = scopeManager.SwitchScope;
+    export type TSEnumScope = scopeManager.TSEnumScope;
+    export type TSModuleScope = scopeManager.TSModuleScope;
+    export type TypeScope = scopeManager.TypeScope;
+    export type WithScope = scopeManager.WithScope;
   }
-
-  export interface Variable {
-    name: string;
-    identifiers: TSESTree.Identifier[];
-    references: Reference[];
-    defs: Definition[];
-    scope: Scope;
-    eslintUsed?: boolean;
-  }
-
-  export interface Scope {
-    type:
-      | 'block'
-      | 'catch'
-      | 'class'
-      | 'for'
-      | 'function'
-      | 'function-expression-name'
-      | 'global'
-      | 'module'
-      | 'switch'
-      | 'with'
-      | 'TDZ';
-    isStrict: boolean;
-    upper: Scope | null;
-    childScopes: Scope[];
-    variableScope: Scope;
-    block: TSESTree.Node;
-    variables: Variable[];
-    set: Map<string, Variable>;
-    references: Reference[];
-    through: Reference[];
-    functionExpressionScope: boolean;
-  }
-
-  export type DefinitionType =
-    | {
-        // eslint-disable-next-line @typescript-eslint/internal/prefer-ast-types-enum
-        type: 'CatchClause';
-        node: TSESTree.CatchClause;
-        parent: null;
-      }
-    | {
-        type: 'ClassName';
-        node: TSESTree.ClassDeclaration | TSESTree.ClassExpression;
-        parent: null;
-      }
-    | {
-        type: 'FunctionName';
-        node: TSESTree.FunctionDeclaration | TSESTree.FunctionExpression;
-        parent: null;
-      }
-    | {
-        type: 'ImplicitGlobalVariable';
-        node: TSESTree.Program;
-        parent: null;
-      }
-    | {
-        type: 'ImportBinding';
-        node:
-          | TSESTree.ImportSpecifier
-          | TSESTree.ImportDefaultSpecifier
-          | TSESTree.ImportNamespaceSpecifier;
-        parent: TSESTree.ImportDeclaration;
-      }
-    | {
-        type: 'Parameter';
-        node:
-          | TSESTree.FunctionDeclaration
-          | TSESTree.FunctionExpression
-          | TSESTree.ArrowFunctionExpression;
-        parent: null;
-      }
-    | {
-        type: 'Variable';
-        node: TSESTree.VariableDeclarator;
-        parent: TSESTree.VariableDeclaration;
-      };
-
-  export type Definition = DefinitionType & { name: TSESTree.Identifier };
 }
 
 export { Scope };

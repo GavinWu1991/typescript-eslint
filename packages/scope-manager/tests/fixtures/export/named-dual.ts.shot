@@ -3,7 +3,8 @@
 exports[`export named-dual 1`] = `
 ScopeManager {
   variables: Array [
-    Variable$1 {
+    ImplicitGlobalConstTypeVariable,
+    Variable$2 {
       defs: Array [
         VariableDefinition$1 {
           name: Identifier<"T">,
@@ -19,16 +20,20 @@ ScopeManager {
         Reference$1 {
           identifier: Identifier<"T">,
           init: true,
+          isRead: false,
           isTypeReference: false,
           isValueReference: true,
-          resolved: Variable$1,
+          isWrite: true,
+          resolved: Variable$2,
           writeExpr: Literal$3,
         },
         Reference$2 {
           identifier: Identifier<"T">,
+          isRead: true,
           isTypeReference: true,
           isValueReference: true,
-          resolved: Variable$1,
+          isWrite: false,
+          resolved: Variable$2,
         },
       ],
       isValueVariable: true,
@@ -44,12 +49,14 @@ ScopeManager {
         Reference$2,
       ],
       set: Map {
-        "T" => Variable$1,
+        "const" => ImplicitGlobalConstTypeVariable,
+        "T" => Variable$2,
       },
       type: "global",
       upper: null,
       variables: Array [
-        Variable$1,
+        ImplicitGlobalConstTypeVariable,
+        Variable$2,
       ],
     },
   ],

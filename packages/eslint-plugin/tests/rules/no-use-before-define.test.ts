@@ -219,25 +219,42 @@ type Foo = string | number;
       `,
       options: [{ typedefs: false }],
     },
-
-    // test for https://github.com/bradzacher/eslint-plugin-typescript/issues/142
+    // https://github.com/typescript-eslint/typescript-eslint/issues/2572
     {
       code: `
-var alias = Test;
+interface Bar {
+  type: typeof Foo;
+}
 
-class Test {}
+const Foo = 2;
       `,
-      parserOptions,
-      options: [{ classes: false }],
+      options: [{ ignoreTypeReferences: true }],
     },
     {
       code: `
-var alias = Test;
+interface Bar {
+  type: typeof Foo.FOO;
+}
 
-export class Test {}
+class Foo {
+  public static readonly FOO = '';
+}
       `,
-      parserOptions: { ecmaVersion: 6, sourceType: 'module' },
-      options: [{ classes: false }],
+      options: [{ ignoreTypeReferences: true }],
+    },
+    {
+      code: `
+interface Bar {
+  type: typeof Foo.Bar.Baz;
+}
+
+const Foo = {
+  Bar: {
+    Baz: 1,
+  },
+};
+      `,
+      options: [{ ignoreTypeReferences: true }],
     },
     // https://github.com/bradzacher/eslint-plugin-typescript/issues/141
     {
@@ -309,6 +326,122 @@ enum Foo {
       `,
       options: [{ enums: false }],
     },
+    // https://github.com/typescript-eslint/typescript-eslint/issues/2502
+    {
+      code: `
+import * as React from 'react';
+
+<div />;
+      `,
+      parserOptions: {
+        sourceType: 'module',
+        ecmaFeatures: {
+          jsx: true,
+        },
+      },
+    },
+    {
+      code: `
+import React from 'react';
+
+<div />;
+      `,
+      parserOptions: {
+        sourceType: 'module',
+        ecmaFeatures: {
+          jsx: true,
+        },
+      },
+    },
+    {
+      code: `
+import { h } from 'preact';
+
+<div />;
+      `,
+      parserOptions: {
+        sourceType: 'module',
+        jsxPragma: 'h',
+        ecmaFeatures: {
+          jsx: true,
+        },
+      },
+    },
+    {
+      code: `
+const React = require('react');
+
+<div />;
+      `,
+      parserOptions: {
+        ecmaFeatures: {
+          jsx: true,
+        },
+      },
+    },
+    // https://github.com/typescript-eslint/typescript-eslint/issues/2527
+    `
+type T = (value: unknown) => value is Id;
+    `,
+    `
+global.foo = true;
+
+declare global {
+  namespace NodeJS {
+    interface Global {
+      foo?: boolean;
+    }
+  }
+}
+    `,
+    // https://github.com/typescript-eslint/typescript-eslint/issues/2824
+    `
+@Directive({
+  selector: '[rcCidrIpPattern]',
+  providers: [
+    {
+      provide: NG_VALIDATORS,
+      useExisting: CidrIpPatternDirective,
+      multi: true,
+    },
+  ],
+})
+export class CidrIpPatternDirective implements Validator {}
+    `,
+    {
+      code: `
+@Directive({
+  selector: '[rcCidrIpPattern]',
+  providers: [
+    {
+      provide: NG_VALIDATORS,
+      useExisting: CidrIpPatternDirective,
+      multi: true,
+    },
+  ],
+})
+export class CidrIpPatternDirective implements Validator {}
+      `,
+      options: [
+        {
+          classes: false,
+        },
+      ],
+    },
+    // https://github.com/typescript-eslint/typescript-eslint/issues/2941
+    `
+class A {
+  constructor(printName) {
+    this.printName = printName;
+  }
+
+  openPort(printerName = this.printerName) {
+    this.tscOcx.ActiveXopenport(printerName);
+
+    return this;
+  }
+}
+    `,
   ],
   invalid: [
     {
@@ -826,6 +959,65 @@ for (var a of a) {
       ],
     },
 
+    // "ignoreTypeReferences" option
+    {
+      code: `
+interface Bar {
+  type: typeof Foo;
+}
+
+const Foo = 2;
+      `,
+      options: [{ ignoreTypeReferences: false }],
+      errors: [
+        {
+          messageId: 'noUseBeforeDefine',
+          data: { name: 'Foo' },
+          type: AST_NODE_TYPES.Identifier,
+        },
+      ],
+    },
+    {
+      code: `
+interface Bar {
+  type: typeof Foo.FOO;
+}
+
+class Foo {
+  public static readonly FOO = '';
+}
+      `,
+      options: [{ ignoreTypeReferences: false }],
+      errors: [
+        {
+          messageId: 'noUseBeforeDefine',
+          data: { name: 'Foo' },
+          type: AST_NODE_TYPES.Identifier,
+        },
+      ],
+    },
+    {
+      code: `
+interface Bar {
+  type: typeof Foo.Bar.Baz;
+}
+
+const Foo = {
+  Bar: {
+    Baz: 1,
+  },
+};
+      `,
+      options: [{ ignoreTypeReferences: false }],
+      errors: [
+        {
+          messageId: 'noUseBeforeDefine',
+          data: { name: 'Foo' },
+          type: AST_NODE_TYPES.Identifier,
+        },
+      ],
+    },
+
     // "variables" option
     {
       code: `
@@ -861,6 +1053,8 @@ enum Foo {
       errors: [
         {
           messageId: 'noUseBeforeDefine',
+          data: { name: 'Foo' },
+          line: 4,
         },
       ],
     },
@@ -878,6 +1072,8 @@ enum Foo {
       errors: [
         {
           messageId: 'noUseBeforeDefine',
+          data: { name: 'Foo' },
+          line: 3,
         },
       ],
     },
@@ -893,6 +1089,8 @@ enum Foo {
       errors: [
         {
           messageId: 'noUseBeforeDefine',
+          data: { name: 'Foo' },
+          line: 2,
         },
       ],
     },

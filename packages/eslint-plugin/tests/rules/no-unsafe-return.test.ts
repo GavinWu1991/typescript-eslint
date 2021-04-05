@@ -9,7 +9,7 @@ import {
 const ruleTester = new RuleTester({
   parser: '@typescript-eslint/parser',
   parserOptions: {
-    project: './tsconfig.json',
+    project: './tsconfig.noImplicitThis.json',
     tsconfigRootDir: getFixturesRootDir(),
   },
 });
@@ -75,6 +75,21 @@ function foo(): Set<number> {
     `
       function fn<T extends any>(x: T) {
         return x;
+      }
+    `,
+    `
+      function fn<T extends any>(x: T): unknown {
+        return x as any;
+      }
+    `,
+    `
+      function fn<T extends any>(x: T): unknown[] {
+        return x as any[];
+      }
+    `,
+    `
+      function fn<T extends any>(x: T): Set<unknown> {
+        return x as Set<any>;
       }
     `,
   ],
@@ -275,6 +290,31 @@ receiver(function test() {
             sender: 'Set<any>',
             receiver: 'Set<string>',
           },
+        },
+      ],
+    },
+    {
+      code: `
+function foo() {
+  return this;
+}
+
+function bar() {
+  return () => this;
+}
+      `,
+      errors: [
+        {
+          messageId: 'unsafeReturnThis',
+          line: 3,
+          column: 3,
+          endColumn: 15,
+        },
+        {
+          messageId: 'unsafeReturnThis',
+          line: 7,
+          column: 16,
+          endColumn: 20,
         },
       ],
     },

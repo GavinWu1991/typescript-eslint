@@ -3,7 +3,8 @@
 exports[`catch scope 1`] = `
 ScopeManager {
   variables: Array [
-    Variable$1 {
+    ImplicitGlobalConstTypeVariable,
+    Variable$2 {
       defs: Array [
         CatchClauseDefinition$1 {
           name: Identifier<"e">,
@@ -14,15 +15,17 @@ ScopeManager {
       references: Array [
         Reference$1 {
           identifier: Identifier<"e">,
+          isRead: true,
           isTypeReference: false,
           isValueReference: true,
-          resolved: Variable$1,
+          isWrite: false,
+          resolved: Variable$2,
         },
       ],
       isValueVariable: true,
       isTypeVariable: false,
     },
-    Variable$2 {
+    Variable$3 {
       defs: Array [
         VariableDefinition$2 {
           name: Identifier<"a">,
@@ -34,16 +37,18 @@ ScopeManager {
         Reference$2 {
           identifier: Identifier<"a">,
           init: true,
+          isRead: false,
           isTypeReference: false,
           isValueReference: true,
-          resolved: Variable$2,
+          isWrite: true,
+          resolved: Variable$3,
           writeExpr: Literal$3,
         },
       ],
       isValueVariable: true,
       isTypeVariable: false,
     },
-    Variable$3 {
+    Variable$4 {
       defs: Array [
         VariableDefinition$3 {
           name: Identifier<"unresolved">,
@@ -55,16 +60,18 @@ ScopeManager {
         Reference$3 {
           identifier: Identifier<"unresolved">,
           init: true,
+          isRead: false,
           isTypeReference: false,
           isValueReference: true,
-          resolved: Variable$3,
+          isWrite: true,
+          resolved: Variable$4,
           writeExpr: Identifier<"e">,
         },
       ],
       isValueVariable: true,
       isTypeVariable: false,
     },
-    Variable$4 {
+    Variable$5 {
       defs: Array [
         VariableDefinition$4 {
           name: Identifier<"dontReference2">,
@@ -76,9 +83,11 @@ ScopeManager {
         Reference$5 {
           identifier: Identifier<"dontReference2">,
           init: true,
+          isRead: false,
           isTypeReference: false,
           isValueReference: true,
-          resolved: Variable$4,
+          isWrite: true,
+          resolved: Variable$5,
           writeExpr: Identifier<"a">,
         },
       ],
@@ -94,27 +103,33 @@ ScopeManager {
         Reference$3,
         Reference$4 {
           identifier: Identifier<"e">,
+          isRead: true,
           isTypeReference: false,
           isValueReference: true,
+          isWrite: false,
           resolved: null,
         },
         Reference$5,
         Reference$6 {
           identifier: Identifier<"a">,
+          isRead: true,
           isTypeReference: false,
           isValueReference: true,
+          isWrite: false,
           resolved: null,
         },
       ],
       set: Map {
-        "unresolved" => Variable$3,
-        "dontReference2" => Variable$4,
+        "const" => ImplicitGlobalConstTypeVariable,
+        "unresolved" => Variable$4,
+        "dontReference2" => Variable$5,
       },
       type: "global",
       upper: null,
       variables: Array [
-        Variable$3,
+        ImplicitGlobalConstTypeVariable,
         Variable$4,
+        Variable$5,
       ],
     },
     BlockScope$2 {
@@ -131,12 +146,12 @@ ScopeManager {
       isStrict: false,
       references: Array [],
       set: Map {
-        "e" => Variable$1,
+        "e" => Variable$2,
       },
       type: "catch",
       upper: GlobalScope$1,
       variables: Array [
-        Variable$1,
+        Variable$2,
       ],
     },
     BlockScope$4 {
@@ -147,12 +162,12 @@ ScopeManager {
         Reference$2,
       ],
       set: Map {
-        "a" => Variable$2,
+        "a" => Variable$3,
       },
       type: "block",
       upper: CatchScope$3,
       variables: Array [
-        Variable$2,
+        Variable$3,
       ],
     },
   ],

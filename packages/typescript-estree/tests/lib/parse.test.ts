@@ -8,18 +8,48 @@ import { createSnapshotTestBlock } from '../../tools/test-utils';
 
 const FIXTURES_DIR = join(__dirname, '../fixtures/simpleProject');
 
-describe('parse()', () => {
+describe('parseWithNodeMaps()', () => {
   describe('basic functionality', () => {
     it('should parse an empty string', () => {
-      expect(parser.parse('').body).toEqual([]);
-      expect(parser.parse('', {}).body).toEqual([]);
+      expect(parser.parseWithNodeMaps('').ast.body).toEqual([]);
+      expect(parser.parseWithNodeMaps('', {}).ast.body).toEqual([]);
+    });
+
+    it('parse() should be the same as parseWithNodeMaps().ast', () => {
+      const code = 'const x: number = 1;';
+      expect(parser.parseWithNodeMaps(code).ast).toMatchObject(
+        parser.parse(code),
+      );
+    });
+
+    it('should simple code', () => {
+      const result = parser.parseWithNodeMaps('1;');
+      expect(result.ast).toMatchInlineSnapshot(`
+        Object {
+          "body": Array [
+            Object {
+              "expression": Object {
+                "raw": "1",
+                "type": "Literal",
+                "value": 1,
+              },
+              "type": "ExpressionStatement",
+            },
+          ],
+          "sourceType": "script",
+          "type": "Program",
+        }
+      `);
+      const tsNode = result.esTreeNodeToTSNodeMap.get(result.ast.body[0]);
+      expect(tsNode).toBeDefined();
+      expect(result.tsNodeToESTreeNodeMap.get(tsNode)).toBeDefined();
     });
   });
 
   describe('modules', () => {
     it('should have correct column number when strict mode error occurs', () => {
       try {
-        parser.parse('function fn(a, a) {\n}');
+        parser.parseWithNodeMaps('function fn(a, a) {\n}');
       } catch (err) {
         expect(err.column).toEqual(16);
       }
@@ -85,7 +115,7 @@ describe('parse()', () => {
 
       const loggerFn = jest.fn(() => {});
 
-      parser.parse('let foo = bar;', {
+      parser.parseWithNodeMaps('let foo = bar;', {
         loggerFn,
         comment: true,
         tokens: true,
@@ -105,7 +135,9 @@ describe('parse()', () => {
       });
     });
   });
+});
 
+describe('parseAndGenerateServices', () => {
   describe('errorOnTypeScriptSyntacticAndSemanticIssues', () => {
     const code = '@test const foo = 2';
     const options: TSESTreeOptions = {
@@ -116,9 +148,9 @@ describe('parse()', () => {
       errorOnTypeScriptSyntacticAndSemanticIssues: true,
     };
 
-    it('should throw on invalid option when used in parse', () => {
+    it('should throw on invalid option when used in parseWithNodeMaps', () => {
       expect(() => {
-        parser.parse(code, options);
+        parser.parseWithNodeMaps(code, options);
       }).toThrow(
         `"errorOnTypeScriptSyntacticAndSemanticIssues" is only supported for parseAndGenerateServices()`,
       );
@@ -168,6 +200,31 @@ describe('parse()', () => {
         ...baseConfig,
         preserveNodeMaps: undefined,
       });
+
+      expect(resultWithNoOptionSet).toMatchObject(resultWithOptionSetToTrue);
+      expect(resultWithNoOptionSet).toMatchObject(resultWithOptionSetToFalse);
+      expect(resultWithNoOptionSet).toMatchObject(
+        resultWithOptionSetExplicitlyToUndefined,
+      );
+    });
+
+    it('should not impact the use of parseWithNodeMaps()', () => {
+      const resultWithNoOptionSet = parser.parseWithNodeMaps(code, baseConfig);
+      const resultWithOptionSetToTrue = parser.parseWithNodeMaps(code, {
+        ...baseConfig,
+        preserveNodeMaps: true,
+      });
+      const resultWithOptionSetToFalse = parser.parseWithNodeMaps(code, {
+        ...baseConfig,
+        preserveNodeMaps: false,
+      });
+      const resultWithOptionSetExplicitlyToUndefined = parser.parseWithNodeMaps(
+        code,
+        {
+          ...baseConfig,
+          preserveNodeMaps: undefined,
+        },
+      );
 
       expect(resultWithNoOptionSet).toMatchObject(resultWithOptionSetToTrue);
       expect(resultWithNoOptionSet).toMatchObject(resultWithOptionSetToFalse);
@@ -592,7 +649,7 @@ describe('parse()', () => {
 
     const testParse = (
       filePath: 'ignoreme' | 'includeme',
-      projectFolderIgnoreList: TSESTreeOptions['projectFolderIgnoreList'] = [],
+      projectFolderIgnoreList?: TSESTreeOptions['projectFolderIgnoreList'],
     ) => (): void => {
       parser.parseAndGenerateServices(code, {
         ...config,
@@ -606,14 +663,8 @@ describe('parse()', () => {
       expect(testParse('includeme')).not.toThrow();
     });
 
-    it('ignores a folder when given a string regexp', () => {
-      const ignore = ['/ignoreme/'];
-      expect(testParse('ignoreme', ignore)).toThrow();
-      expect(testParse('includeme', ignore)).not.toThrow();
-    });
-
-    it('ignores a folder when given a RegExp', () => {
-      const ignore = [/\/ignoreme\//];
+    it('ignores a folder when given a string glob', () => {
+      const ignore = ['**/ignoreme/**'];
       expect(testParse('ignoreme', ignore)).toThrow();
       expect(testParse('includeme', ignore)).not.toThrow();
     });

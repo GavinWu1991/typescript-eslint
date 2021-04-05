@@ -30,6 +30,8 @@ export default util.createRule<Options, MessageIds>({
       category: 'Best Practices',
       recommended: false,
     },
+    deprecated: true,
+    replacedBy: ['no-unused-vars'],
     schema: [
       {
         type: 'object',
@@ -140,7 +142,6 @@ export default util.createRule<Options, MessageIds>({
         case ts.SyntaxKind.ImportSpecifier:
         // a namespace import is NOT used, but the default import is used
         case ts.SyntaxKind.NamespaceImport:
-          // eslint-disable-next-line @typescript-eslint/internal/prefer-ast-types-enum
           report('Import');
           break;
 

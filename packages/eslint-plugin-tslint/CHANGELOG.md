@@ -3,6 +3,331 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [4.20.0](https://github.com/typescript-eslint/typescript-eslint/compare/v4.19.0...v4.20.0) (2021-03-29)
+
+**Note:** Version bump only for package @typescript-eslint/eslint-plugin-tslint
+
+
+
+
+
+# [4.19.0](https://github.com/typescript-eslint/typescript-eslint/compare/v4.18.0...v4.19.0) (2021-03-22)
+
+**Note:** Version bump only for package @typescript-eslint/eslint-plugin-tslint
+
+
+
+
+
+# [4.18.0](https://github.com/typescript-eslint/typescript-eslint/compare/v4.17.0...v4.18.0) (2021-03-15)
+
+**Note:** Version bump only for package @typescript-eslint/eslint-plugin-tslint
+
+
+
+
+
+# [4.17.0](https://github.com/typescript-eslint/typescript-eslint/compare/v4.16.1...v4.17.0) (2021-03-08)
+
+**Note:** Version bump only for package @typescript-eslint/eslint-plugin-tslint
+
+
+
+
+
+## [4.16.1](https://github.com/typescript-eslint/typescript-eslint/compare/v4.16.0...v4.16.1) (2021-03-01)
+
+**Note:** Version bump only for package @typescript-eslint/eslint-plugin-tslint
+
+
+
+
+
+# [4.16.0](https://github.com/typescript-eslint/typescript-eslint/compare/v4.15.2...v4.16.0) (2021-03-01)
+
+**Note:** Version bump only for package @typescript-eslint/eslint-plugin-tslint
+
+
+
+
+
+## [4.15.2](https://github.com/typescript-eslint/typescript-eslint/compare/v4.15.1...v4.15.2) (2021-02-22)
+
+**Note:** Version bump only for package @typescript-eslint/eslint-plugin-tslint
+
+
+
+
+
+## [4.15.1](https://github.com/typescript-eslint/typescript-eslint/compare/v4.15.0...v4.15.1) (2021-02-15)
+
+**Note:** Version bump only for package @typescript-eslint/eslint-plugin-tslint
+
+
+
+
+
+# [4.15.0](https://github.com/typescript-eslint/typescript-eslint/compare/v4.14.2...v4.15.0) (2021-02-08)
+
+**Note:** Version bump only for package @typescript-eslint/eslint-plugin-tslint
+
+
+
+
+
+## [4.14.2](https://github.com/typescript-eslint/typescript-eslint/compare/v4.14.1...v4.14.2) (2021-02-01)
+
+**Note:** Version bump only for package @typescript-eslint/eslint-plugin-tslint
+
+
+
+
+
+## [4.14.1](https://github.com/typescript-eslint/typescript-eslint/compare/v4.14.0...v4.14.1) (2021-01-25)
+
+**Note:** Version bump only for package @typescript-eslint/eslint-plugin-tslint
+
+
+
+
+
+# [4.14.0](https://github.com/typescript-eslint/typescript-eslint/compare/v4.13.0...v4.14.0) (2021-01-18)
+
+**Note:** Version bump only for package @typescript-eslint/eslint-plugin-tslint
+
+
+
+
+
+# [4.13.0](https://github.com/typescript-eslint/typescript-eslint/compare/v4.12.0...v4.13.0) (2021-01-11)
+
+**Note:** Version bump only for package @typescript-eslint/eslint-plugin-tslint
+
+
+
+
+
+# [4.12.0](https://github.com/typescript-eslint/typescript-eslint/compare/v4.11.1...v4.12.0) (2021-01-04)
+
+**Note:** Version bump only for package @typescript-eslint/eslint-plugin-tslint
+
+
+
+
+
+## [4.11.1](https://github.com/typescript-eslint/typescript-eslint/compare/v4.11.0...v4.11.1) (2020-12-28)
+
+**Note:** Version bump only for package @typescript-eslint/eslint-plugin-tslint
+
+
+
+
+
+# [4.11.0](https://github.com/typescript-eslint/typescript-eslint/compare/v4.10.0...v4.11.0) (2020-12-21)
+
+**Note:** Version bump only for package @typescript-eslint/eslint-plugin-tslint
+
+
+
+
+
+# [4.10.0](https://github.com/typescript-eslint/typescript-eslint/compare/v4.9.1...v4.10.0) (2020-12-14)
+
+**Note:** Version bump only for package @typescript-eslint/eslint-plugin-tslint
+
+
+
+
+
+## [4.9.1](https://github.com/typescript-eslint/typescript-eslint/compare/v4.9.0...v4.9.1) (2020-12-07)
+
+**Note:** Version bump only for package @typescript-eslint/eslint-plugin-tslint
+
+
+
+
+
+# [4.9.0](https://github.com/typescript-eslint/typescript-eslint/compare/v4.8.2...v4.9.0) (2020-11-30)
+
+**Note:** Version bump only for package @typescript-eslint/eslint-plugin-tslint
+
+
+
+
+
+## [4.8.2](https://github.com/typescript-eslint/typescript-eslint/compare/v4.8.1...v4.8.2) (2020-11-23)
+
+**Note:** Version bump only for package @typescript-eslint/eslint-plugin-tslint
+
+
+
+
+
+## [4.8.1](https://github.com/typescript-eslint/typescript-eslint/compare/v4.8.0...v4.8.1) (2020-11-17)
+
+**Note:** Version bump only for package @typescript-eslint/eslint-plugin-tslint
+
+
+
+
+
+# [4.8.0](https://github.com/typescript-eslint/typescript-eslint/compare/v4.7.0...v4.8.0) (2020-11-16)
+
+**Note:** Version bump only for package @typescript-eslint/eslint-plugin-tslint
+
+
+
+
+
+# [4.7.0](https://github.com/typescript-eslint/typescript-eslint/compare/v4.6.1...v4.7.0) (2020-11-09)
+
+**Note:** Version bump only for package @typescript-eslint/eslint-plugin-tslint
+
+
+
+
+
+## [4.6.1](https://github.com/typescript-eslint/typescript-eslint/compare/v4.6.0...v4.6.1) (2020-11-02)
+
+**Note:** Version bump only for package @typescript-eslint/eslint-plugin-tslint
+
+
+
+
+
+# [4.6.0](https://github.com/typescript-eslint/typescript-eslint/compare/v4.5.0...v4.6.0) (2020-10-26)
+
+**Note:** Version bump only for package @typescript-eslint/eslint-plugin-tslint
+
+
+
+
+
+# [4.5.0](https://github.com/typescript-eslint/typescript-eslint/compare/v4.4.1...v4.5.0) (2020-10-19)
+
+
+### Features
+
+* **typescript-estree:** add flag EXPERIMENTAL_useSourceOfProjectReferenceRedirect ([#2669](https://github.com/typescript-eslint/typescript-eslint/issues/2669)) ([90a5878](https://github.com/typescript-eslint/typescript-eslint/commit/90a587845088da1b205e4d7d77dbc3f9447b1c5a))
+
+
+
+
+
+## [4.4.1](https://github.com/typescript-eslint/typescript-eslint/compare/v4.4.0...v4.4.1) (2020-10-12)
+
+**Note:** Version bump only for package @typescript-eslint/eslint-plugin-tslint
+
+
+
+
+
+# [4.4.0](https://github.com/typescript-eslint/typescript-eslint/compare/v4.3.0...v4.4.0) (2020-10-05)
+
+**Note:** Version bump only for package @typescript-eslint/eslint-plugin-tslint
+
+
+
+
+
+# [4.3.0](https://github.com/typescript-eslint/typescript-eslint/compare/v4.2.0...v4.3.0) (2020-09-28)
+
+**Note:** Version bump only for package @typescript-eslint/eslint-plugin-tslint
+
+
+
+
+
+# [4.2.0](https://github.com/typescript-eslint/typescript-eslint/compare/v4.1.1...v4.2.0) (2020-09-21)
+
+**Note:** Version bump only for package @typescript-eslint/eslint-plugin-tslint
+
+
+
+
+
+## [4.1.1](https://github.com/typescript-eslint/typescript-eslint/compare/v4.1.0...v4.1.1) (2020-09-14)
+
+**Note:** Version bump only for package @typescript-eslint/eslint-plugin-tslint
+
+
+
+
+
+# [4.1.0](https://github.com/typescript-eslint/typescript-eslint/compare/v4.0.1...v4.1.0) (2020-09-07)
+
+**Note:** Version bump only for package @typescript-eslint/eslint-plugin-tslint
+
+
+
+
+
+## [4.0.1](https://github.com/typescript-eslint/typescript-eslint/compare/v4.0.0...v4.0.1) (2020-08-31)
+
+**Note:** Version bump only for package @typescript-eslint/eslint-plugin-tslint
+
+
+
+
+
+# [4.0.0](https://github.com/typescript-eslint/typescript-eslint/compare/v3.10.1...v4.0.0) (2020-08-31)
+
+## [Please see the release notes for v4.0.0](https://github.com/typescript-eslint/typescript-eslint/releases/tag/v4.0.0)
+
+**Note:** Version bump only for package @typescript-eslint/eslint-plugin-tslint
+
+
+
+
+
+## [3.10.1](https://github.com/typescript-eslint/typescript-eslint/compare/v3.10.0...v3.10.1) (2020-08-25)
+
+**Note:** Version bump only for package @typescript-eslint/eslint-plugin-tslint
+
+
+
+
+
+# [3.10.0](https://github.com/typescript-eslint/typescript-eslint/compare/v3.9.1...v3.10.0) (2020-08-24)
+
+**Note:** Version bump only for package @typescript-eslint/eslint-plugin-tslint
+
+
+
+
+
+## [3.9.1](https://github.com/typescript-eslint/typescript-eslint/compare/v3.9.0...v3.9.1) (2020-08-17)
+
+**Note:** Version bump only for package @typescript-eslint/eslint-plugin-tslint
+
+
+
+
+
+# [3.9.0](https://github.com/typescript-eslint/typescript-eslint/compare/v3.8.0...v3.9.0) (2020-08-10)
+
+**Note:** Version bump only for package @typescript-eslint/eslint-plugin-tslint
+
+
+
+
+
+# [3.8.0](https://github.com/typescript-eslint/typescript-eslint/compare/v3.7.1...v3.8.0) (2020-08-03)
+
+**Note:** Version bump only for package @typescript-eslint/eslint-plugin-tslint
+
+
+
+
+
+## [3.7.1](https://github.com/typescript-eslint/typescript-eslint/compare/v3.7.0...v3.7.1) (2020-07-27)
+
+**Note:** Version bump only for package @typescript-eslint/eslint-plugin-tslint
+
+
+
+
+
 # [3.7.0](https://github.com/typescript-eslint/typescript-eslint/compare/v3.6.1...v3.7.0) (2020-07-20)
 
 **Note:** Version bump only for package @typescript-eslint/eslint-plugin-tslint

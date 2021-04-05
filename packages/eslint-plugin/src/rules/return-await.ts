@@ -1,7 +1,7 @@
 import {
   AST_NODE_TYPES,
-  TSESTree,
   TSESLint,
+  TSESTree,
 } from '@typescript-eslint/experimental-utils';
 import * as tsutils from 'tsutils';
 import * as ts from 'typescript';
@@ -57,20 +57,60 @@ export default util.createRule({
       };
     }
 
-    function inTryCatch(node: ts.Node): boolean {
+    function inTry(node: ts.Node): boolean {
       let ancestor = node.parent;
 
       while (ancestor && !ts.isFunctionLike(ancestor)) {
-        if (
-          tsutils.isTryStatement(ancestor) ||
-          tsutils.isCatchClause(ancestor)
-        ) {
+        if (ts.isTryStatement(ancestor)) {
           return true;
         }
 
         ancestor = ancestor.parent;
       }
 
+      return false;
+    }
+
+    function inCatch(node: ts.Node): boolean {
+      let ancestor = node.parent;
+
+      while (ancestor && !ts.isFunctionLike(ancestor)) {
+        if (ts.isCatchClause(ancestor)) {
+          return true;
+        }
+
+        ancestor = ancestor.parent;
+      }
+
+      return false;
+    }
+
+    function isReturnPromiseInFinally(node: ts.Node): boolean {
+      let ancestor = node.parent;
+
+      while (ancestor && !ts.isFunctionLike(ancestor)) {
+        if (
+          ts.isTryStatement(ancestor.parent) &&
+          ts.isBlock(ancestor) &&
+          ancestor.parent.end === ancestor.end
+        ) {
+          return true;
+        }
+        ancestor = ancestor.parent;
+      }
+
+      return false;
+    }
+
+    function hasFinallyBlock(node: ts.Node): boolean {
+      let ancestor = node.parent;
+
+      while (ancestor && !ts.isFunctionLike(ancestor)) {
+        if (ts.isTryStatement(ancestor)) {
+          return !!ancestor.finallyBlock;
+        }
+        ancestor = ancestor.parent;
+      }
       return false;
     }
 
@@ -114,7 +154,7 @@ export default util.createRule({
     function test(node: TSESTree.Expression, expression: ts.Node): void {
       let child: ts.Node;
 
-      const isAwait = tsutils.isAwaitExpression(expression);
+      const isAwait = ts.isAwaitExpression(expression);
 
       if (isAwait) {
         child = expression.getChildAt(1);
@@ -130,10 +170,26 @@ export default util.createRule({
       }
 
       if (isAwait && !isThenable) {
+        // any/unknown could be thenable; do not auto-fix
+        const useAutoFix = !(
+          util.isTypeAnyType(type) || util.isTypeUnknownType(type)
+        );
+        const fix = (fixer: TSESLint.RuleFixer): TSESLint.RuleFix | null =>
+          removeAwait(fixer, node);
+
         context.report({
           messageId: 'nonPromiseAwait',
           node,
-          fix: fixer => removeAwait(fixer, node),
+          ...(useAutoFix
+            ? { fix }
+            : {
+                suggest: [
+                  {
+                    messageId: 'nonPromiseAwait',
+                    fix,
+                  },
+                ],
+              }),
         });
         return;
       }
@@ -163,7 +219,7 @@ export default util.createRule({
       }
 
       if (option === 'in-try-catch') {
-        const isInTryCatch = inTryCatch(expression);
+        const isInTryCatch = inTry(expression) || inCatch(expression);
         if (isAwait && !isInTryCatch) {
           context.report({
             messageId: 'disallowedPromiseAwait',
@@ -171,6 +227,14 @@ export default util.createRule({
             fix: fixer => removeAwait(fixer, node),
           });
         } else if (!isAwait && isInTryCatch) {
+          if (inCatch(expression) && !hasFinallyBlock(expression)) {
+            return;
+          }
+
+          if (isReturnPromiseInFinally(expression)) {
+            return;
+          }
+
           context.report({
             messageId: 'requiredPromiseAwait',
             node,
