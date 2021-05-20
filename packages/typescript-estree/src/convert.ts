@@ -1,5 +1,5 @@
 // There's lots of funny stuff due to the typing of ts.Node
-/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-call */
 import * as ts from 'typescript';
 import {
   canContainDirective,
@@ -1987,7 +1987,7 @@ export class Converter {
         let regex = null;
         try {
           regex = new RegExp(pattern, flags);
-        } catch (exception) {
+        } catch (exception: unknown) {
           regex = null;
         }
 
@@ -2166,7 +2166,7 @@ export class Converter {
             range: [start, end],
           });
         } else {
-          return this.createNode<TSESTree.Literal>(node, {
+          return this.createNode<TSESTree.StringLiteral>(node, {
             type: AST_NODE_TYPES.Literal,
             value: unescapeStringLiteralText(text),
             raw: text,
